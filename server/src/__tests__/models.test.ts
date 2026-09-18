@@ -6,9 +6,9 @@ import { Class } from '../models/Class';
 import { Classes } from '../models/Classes';
 import { Report } from '../models/Report';
 import {
-  EspecificacaoDoCalculoDaMedia,
-  DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA
-} from '../models/EspecificacaoDoCalculoDaMedia';
+  AverageCalculationSpecification,
+  DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
+} from '../models/AverageCalculationSpecification';
 
 /**
  * Class (unit) tests for the domain model. They record the behavior observed
@@ -17,7 +17,7 @@ import {
 
 const ana = () => new Student('Ana Lima', '123.456.789-01', 'ana@cin.ufpe.br');
 const bruno = () => new Student('Bruno Melo', '987.654.321-00', 'bruno@cin.ufpe.br');
-const newClass = () => new Class('Software Engineering', 1, 2025, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+const newClass = () => new Class('Software Engineering', 1, 2025, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION);
 
 describe('StudentSet', () => {
   let students: StudentSet;
@@ -94,9 +94,9 @@ describe('Enrollment', () => {
   test('starts with no evaluations, null averages and not failed by absence', () => {
     expect(enrollment.getStudent().getName()).toBe('Ana Lima');
     expect(enrollment.getEvaluations()).toEqual([]);
-    expect(enrollment.getMediaPreFinal()).toBeNull();
-    expect(enrollment.getMediaPosFinal()).toBeNull();
-    expect(enrollment.getReprovadoPorFalta()).toBe(false);
+    expect(enrollment.getAverageBeforeFinalExam()).toBeNull();
+    expect(enrollment.getAverageAfterFinalExam()).toBeNull();
+    expect(enrollment.getFailedByAbsence()).toBe(false);
   });
 
   test('adds, updates, finds and removes evaluations by goal', () => {
@@ -120,32 +120,32 @@ describe('Enrollment', () => {
   });
 
   test('exposes averages and absence status through setters and JSON', () => {
-    enrollment.setMediaPreFinal(7.5);
-    enrollment.setMediaPosFinal(8);
-    enrollment.setReprovadoPorFalta(true);
+    enrollment.setAverageBeforeFinalExam(7.5);
+    enrollment.setAverageAfterFinalExam(8);
+    enrollment.setFailedByAbsence(true);
     expect(enrollment.toJSON()).toEqual({
       student: { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' },
       evaluations: [],
-      mediaPreFinal: 7.5,
-      mediaPosFinal: 8,
-      reprovadoPorFalta: true
+      averageBeforeFinalExam: 7.5,
+      averageAfterFinalExam: 8,
+      failedByAbsence: true
     });
   });
 
   test('average calculation is not implemented yet', () => {
-    expect(() => enrollment.calculateMediaPreFinal()).toThrow('not implemented');
-    expect(() => enrollment.calculateMediaPosFinal()).toThrow('not implemented');
+    expect(() => enrollment.calculateAverageBeforeFinalExam()).toThrow('not implemented');
+    expect(() => enrollment.calculateAverageAfterFinalExam()).toThrow('not implemented');
   });
 
   test('fromJSON rebuilds evaluations and optional fields', () => {
     const rebuilt = Enrollment.fromJSON(
-      { student: {}, evaluations: [{ goal: 'Design', grade: 'MA' }], mediaPreFinal: 9, reprovadoPorFalta: true },
+      { student: {}, evaluations: [{ goal: 'Design', grade: 'MA' }], averageBeforeFinalExam: 9, failedByAbsence: true },
       ana()
     );
     expect(rebuilt.getEvaluations().map(e => e.toJSON())).toEqual([{ goal: 'Design', grade: 'MA' }]);
-    expect(rebuilt.getMediaPreFinal()).toBe(9);
-    expect(rebuilt.getMediaPosFinal()).toBeNull();
-    expect(rebuilt.getReprovadoPorFalta()).toBe(true);
+    expect(rebuilt.getAverageBeforeFinalExam()).toBe(9);
+    expect(rebuilt.getAverageAfterFinalExam()).toBeNull();
+    expect(rebuilt.getFailedByAbsence()).toBe(true);
   });
 });
 
@@ -193,7 +193,7 @@ describe('Class', () => {
       topic: 'Software Engineering',
       semester: 1,
       year: 2025,
-      especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+      averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
       enrollments: [new Enrollment(ana()).toJSON()]
     });
   });
@@ -201,13 +201,13 @@ describe('Class', () => {
   test('fromJSON resolves enrolled students from the given list', () => {
     const rebuilt = Class.fromJSON({
       topic: 'SE', semester: 2, year: 2024,
-      especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+      averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
       enrollments: [{ student: { cpf: '12345678901' }, evaluations: [] }]
     }, [ana(), bruno()]);
     expect(rebuilt.getClassId()).toBe('SE-2024-2');
     expect(rebuilt.getEnrolledStudents().map(s => s.getName())).toEqual(['Ana Lima']);
     expect(() => Class.fromJSON({
-      topic: 'SE', semester: 2, year: 2024, especificacaoDoCalculoDaMedia: {},
+      topic: 'SE', semester: 2, year: 2024, averageCalculationSpecification: {},
       enrollments: [{ student: { cpf: '00000000000' }, evaluations: [] }]
     }, [])).toThrow('Student with CPF 00000000000 not found');
   });
@@ -228,7 +228,7 @@ describe('Classes', () => {
 
   test('updateClassIdentification changes topic, semester and year, keeping ids unique', () => {
     const se = classes.addClass(newClass());
-    classes.addClass(new Class('Databases', 2, 2024, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    classes.addClass(new Class('Databases', 2, 2024, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     expect(classes.updateClassIdentification('Software Engineering-2025-1', 'SE', 2, 2026)).toBe(se);
     expect(se.getClassId()).toBe('SE-2026-2');
     // same identification as itself is allowed
@@ -247,14 +247,14 @@ describe('Classes', () => {
 
   test('filters classes by year and by topic substring (case-insensitive)', () => {
     classes.addClass(newClass());
-    classes.addClass(new Class('Databases', 2, 2024, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    classes.addClass(new Class('Databases', 2, 2024, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     expect(classes.findClassesByYear(2024).map(c => c.getTopic())).toEqual(['Databases']);
     expect(classes.findClassesByTopic('software').map(c => c.getTopic())).toEqual(['Software Engineering']);
   });
 
   test('lists each enrolled student once across classes', () => {
     const se = classes.addClass(newClass());
-    const db = classes.addClass(new Class('Databases', 2, 2024, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    const db = classes.addClass(new Class('Databases', 2, 2024, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     se.addEnrollment(ana());
     db.addEnrollment(ana());
     db.addEnrollment(bruno());
@@ -270,45 +270,45 @@ describe('Classes', () => {
     expect(classes.updateClass(updated)).toBe(existing);
     expect(existing.findEnrollmentByStudentCPF('12345678901')?.getEvaluationForGoal('Design')?.getGrade()).toBe('MA');
     expect(existing.findEnrollmentByStudentCPF('98765432100')?.getEvaluationForGoal('Tests')?.getGrade()).toBe('MPA');
-    expect(() => classes.updateClass(new Class('X', 1, 2000, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA))).toThrow('Class not found');
+    expect(() => classes.updateClass(new Class('X', 1, 2000, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION))).toThrow('Class not found');
   });
 });
 
-describe('EspecificacaoDoCalculoDaMedia', () => {
+describe('AverageCalculationSpecification', () => {
   const grades = new Map<'MANA' | 'MPA' | 'MA', number>([['MA', 10], ['MPA', 7], ['MANA', 0]]);
 
   test('computes the weighted average of the grades', () => {
-    const spec = new EspecificacaoDoCalculoDaMedia(grades, new Map([['Design', 2], ['Tests', 1]]));
-    expect(spec.calc(new Map([['Design', 'MA'], ['Tests', 'MPA']]))).toBeCloseTo((2 * 10 + 1 * 7) / 3);
-    expect(spec.calc(new Map())).toBe(0);
+    const spec = new AverageCalculationSpecification(grades, new Map([['Design', 2], ['Tests', 1]]));
+    expect(spec.calculateAverage(new Map([['Design', 'MA'], ['Tests', 'MPA']]))).toBeCloseTo((2 * 10 + 1 * 7) / 3);
+    expect(spec.calculateAverage(new Map())).toBe(0);
   });
 
   test('rejects goal weights that sum to zero', () => {
-    expect(() => new EspecificacaoDoCalculoDaMedia(grades, new Map())).toThrow('A soma dos pesos das metas não pode ser zero.');
+    expect(() => new AverageCalculationSpecification(grades, new Map())).toThrow('The sum of the goal weights cannot be zero.');
   });
 
   test('is immutable with respect to the maps it was built from', () => {
     const goals = new Map([['Design', 1]]);
-    const spec = new EspecificacaoDoCalculoDaMedia(grades, goals);
+    const spec = new AverageCalculationSpecification(grades, goals);
     goals.set('Design', 100);
-    expect(spec.toJSON().pesosDasMetas).toEqual({ Design: 1 });
+    expect(spec.toJSON().goalWeights).toEqual({ Design: 1 });
   });
 
   test('serializes maps as plain objects and reads them back', () => {
-    const json = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON();
+    const json = DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON();
     expect(json).toEqual({
-      pesosDosConceitos: { MA: 10, MPA: 7, MANA: 0 },
-      pesosDasMetas: { 'Gerência de Configuração': 1, 'Gerência de Projeto': 1, 'Qualidade de Software': 1 }
+      gradeWeights: { MA: 10, MPA: 7, MANA: 0 },
+      goalWeights: { 'Gerência de Configuração': 1, 'Gerência de Projeto': 1, 'Qualidade de Software': 1 }
     });
-    expect(EspecificacaoDoCalculoDaMedia.fromJSON(json).toJSON()).toEqual(json);
+    expect(AverageCalculationSpecification.fromJSON(json).toJSON()).toEqual(json);
   });
 
   test('fromJSON also accepts the legacy array formats', () => {
-    const fromPairs = EspecificacaoDoCalculoDaMedia.fromJSON({
-      pesosDosConceitos: [['MA', 10], ['MPA', 7], ['MANA', 0]],
-      pesosDasMetas: [{ key: 'Design', value: 1 }]
+    const fromPairs = AverageCalculationSpecification.fromJSON({
+      gradeWeights: [['MA', 10], ['MPA', 7], ['MANA', 0]],
+      goalWeights: [{ key: 'Design', value: 1 }]
     });
-    expect(fromPairs.toJSON()).toEqual({ pesosDosConceitos: { MA: 10, MPA: 7, MANA: 0 }, pesosDasMetas: { Design: 1 } });
+    expect(fromPairs.toJSON()).toEqual({ gradeWeights: { MA: 10, MPA: 7, MANA: 0 }, goalWeights: { Design: 1 } });
   });
 });
 

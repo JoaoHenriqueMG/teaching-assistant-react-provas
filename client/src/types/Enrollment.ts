@@ -4,22 +4,22 @@ import { Evaluation } from './Evaluation';
 export interface Enrollment {
   student: Student;
   evaluations: Evaluation[];
-  mediaPreFinal?: number;
-  mediaPosFinal?: number;
-  reprovadoPorFalta?: boolean;
+  averageBeforeFinalExam?: number;
+  averageAfterFinalExam?: number;
+  failedByAbsence?: boolean;
 }
 
 export interface CreateEnrollmentRequest {
   studentCPF: string;
   evaluations?: Evaluation[];
-  mediaPreFinal?: number;
-  mediaPosFinal?: number;
-  reprovadoPorFalta?: boolean;
+  averageBeforeFinalExam?: number;
+  averageAfterFinalExam?: number;
+  failedByAbsence?: boolean;
 }
 
 export interface UpdateEnrollmentRequest {
   evaluations?: Evaluation[];
-  mediaPreFinal?: number;
-  mediaPosFinal?: number;
-  reprovadoPorFalta?: boolean;
+  averageBeforeFinalExam?: number;
+  averageAfterFinalExam?: number;
+  failedByAbsence?: boolean;
 }

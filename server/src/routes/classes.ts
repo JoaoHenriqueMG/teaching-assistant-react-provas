@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Classes } from '../models/Classes';
 import { Class } from '../models/Class';
-import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from '../models/EspecificacaoDoCalculoDaMedia';
+import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 import { badRequest, notFound } from './HttpError';
 import { isInteger, isNonEmptyString } from './validation';
 
@@ -44,7 +44,7 @@ export function classRoutes(classes: Classes, onStateChanged: () => void): Route
   // POST /api/classes - Add a new class
   router.post('/', (req, res) => {
     const { topic, semester, year } = requireClassFields(req.body);
-    const newClass = classes.addClass(new Class(topic, semester, year, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    const newClass = classes.addClass(new Class(topic, semester, year, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     onStateChanged();
     res.status(201).json(newClass.toJSON());
   });

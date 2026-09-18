@@ -91,7 +91,7 @@ export class Classes {
     if (!existingClass) {
       throw new DomainError('Class not found');
     }
-    const newId = new Class(topic, semester, year, existingClass.getEspecificacaoDoCalculoDaMedia()).getClassId();
+    const newId = new Class(topic, semester, year, existingClass.getAverageCalculationSpecification()).getClassId();
     const conflictingClass = this.findClassById(newId);
     if (conflictingClass && conflictingClass !== existingClass) {
       throw new DomainError('Class with same topic, year, and semester already exists');

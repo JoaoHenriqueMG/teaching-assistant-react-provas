@@ -4,7 +4,7 @@ import { Student } from '../types/Student';
 import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
-import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA, EspecificacaoDoCalculoDaMedia } from '../types/EspecificacaoDoCalculoDaMedia';
+import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../types/AverageCalculationSpecification';
 
 interface ClassesProps {
   classes: Class[];
@@ -25,7 +25,7 @@ const Classes: React.FC<ClassesProps> = ({
     topic: '',
     semester: 1,
     year: new Date().getFullYear(),
-    especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
+    averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
   });
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,7 +160,7 @@ const Classes: React.FC<ClassesProps> = ({
         topic: '',
         semester: 1,
         year: new Date().getFullYear(),
-        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
       });
     } catch (error) {
       onError((error as Error).message);
@@ -176,7 +176,7 @@ const Classes: React.FC<ClassesProps> = ({
       topic: classObj.topic,
       semester: classObj.semester,
       year: classObj.year,
-      especificacaoDoCalculoDaMedia: classObj.especificacaoDoCalculoDaMedia
+      averageCalculationSpecification: classObj.averageCalculationSpecification
     });
   };
 
@@ -187,7 +187,7 @@ const Classes: React.FC<ClassesProps> = ({
       topic: '',
       semester: 1,
       year: new Date().getFullYear(),
-      especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
+      averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
     });
   };
 

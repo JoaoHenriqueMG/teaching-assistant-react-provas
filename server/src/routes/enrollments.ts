@@ -74,8 +74,8 @@ export function enrollmentRoutes(classes: Classes, students: StudentSet, onState
     const enrollment = findEnrollment(req.params.classId, req.params.studentCPF);
     res.json({
       student: enrollment.getStudent().toJSON(),
-      average: enrollment.getMediaPreFinal(),
-      final_average: enrollment.getMediaPosFinal()
+      average: enrollment.getAverageBeforeFinalExam(),
+      final_average: enrollment.getAverageAfterFinalExam()
     });
   });
 

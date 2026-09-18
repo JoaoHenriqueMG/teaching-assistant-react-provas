@@ -6,7 +6,7 @@ import { StudentSet } from '../models/StudentSet';
 import { Classes } from '../models/Classes';
 import { Student } from '../models/Student';
 import { Class } from '../models/Class';
-import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from '../models/EspecificacaoDoCalculoDaMedia';
+import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 
 describe('JsonFileRepository', () => {
   let directory: string;
@@ -28,11 +28,11 @@ describe('JsonFileRepository', () => {
     const classes = new Classes();
     const ana = students.addStudent(new Student('Ana Lima', '123.456.789-01', 'ana@cin.ufpe.br'));
     students.addStudent(new Student('Bruno Melo', '987.654.321-00', 'bruno@cin.ufpe.br'));
-    const se = classes.addClass(new Class('Software Engineering', 1, 2025, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    const se = classes.addClass(new Class('Software Engineering', 1, 2025, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     const enrollment = se.addEnrollment(ana);
     enrollment.addOrUpdateEvaluation('Design', 'MA');
-    enrollment.setMediaPreFinal(8.5);
-    enrollment.setReprovadoPorFalta(true);
+    enrollment.setAverageBeforeFinalExam(8.5);
+    enrollment.setFailedByAbsence(true);
     return { students, classes };
   };
 
@@ -56,13 +56,13 @@ describe('JsonFileRepository', () => {
         topic: 'Software Engineering',
         semester: 1,
         year: 2025,
-        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
         enrollments: [{
           studentCPF: '12345678901',
           evaluations: [{ goal: 'Design', grade: 'MA' }],
-          mediaPreFinal: 8.5,
-          mediaPosFinal: null,
-          reprovadoPorFalta: true
+          averageBeforeFinalExam: 8.5,
+          averageAfterFinalExam: null,
+          failedByAbsence: true
         }]
       }]
     });
@@ -80,9 +80,9 @@ describe('JsonFileRepository', () => {
     expect(classes.getAllClasses().map(c => c.toJSON())).toEqual(saved.classes.getAllClasses().map(c => c.toJSON()));
     const enrollment = classes.findClassById('Software Engineering-2025-1')!.findEnrollmentByStudentCPF('12345678901')!;
     expect(enrollment.getStudent()).toBe(students.findStudentByCPF('12345678901'));
-    expect(enrollment.getMediaPreFinal()).toBe(8.5);
-    expect(enrollment.getMediaPosFinal()).toBeNull();
-    expect(enrollment.getReprovadoPorFalta()).toBe(true);
+    expect(enrollment.getAverageBeforeFinalExam()).toBe(8.5);
+    expect(enrollment.getAverageAfterFinalExam()).toBeNull();
+    expect(enrollment.getFailedByAbsence()).toBe(true);
   });
 
   test('load reads averages and absence status when the file has them', () => {
@@ -91,17 +91,17 @@ describe('JsonFileRepository', () => {
       students: [{ name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' }],
       classes: [{
         topic: 'SE', semester: 1, year: 2025,
-        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
-        enrollments: [{ studentCPF: '12345678901', evaluations: [], mediaPreFinal: 7, mediaPosFinal: 8, reprovadoPorFalta: true }]
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        enrollments: [{ studentCPF: '12345678901', evaluations: [], averageBeforeFinalExam: 7, averageAfterFinalExam: 8, failedByAbsence: true }]
       }]
     }));
     const students = new StudentSet();
     const classes = new Classes();
     repository.load(students, classes);
     const enrollment = classes.findClassById('SE-2025-1')!.getEnrollments()[0];
-    expect(enrollment.getMediaPreFinal()).toBe(7);
-    expect(enrollment.getMediaPosFinal()).toBe(8);
-    expect(enrollment.getReprovadoPorFalta()).toBe(true);
+    expect(enrollment.getAverageBeforeFinalExam()).toBe(7);
+    expect(enrollment.getAverageAfterFinalExam()).toBe(8);
+    expect(enrollment.getFailedByAbsence()).toBe(true);
   });
 
   test('load skips invalid records and enrollments of unknown students', () => {
@@ -114,7 +114,7 @@ describe('JsonFileRepository', () => {
       ],
       classes: [{
         topic: 'SE', semester: 1, year: 2025,
-        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
         enrollments: [{ studentCPF: '00000000000', evaluations: [] }, { studentCPF: '12345678901', evaluations: [] }]
       }]
     }));

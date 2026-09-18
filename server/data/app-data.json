@@ -26,13 +26,13 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
+      "averageCalculationSpecification": {
+        "gradeWeights": {
           "MA": 10,
           "MPA": 7,
           "MANA": 0
         },
-        "pesosDasMetas": {
+        "goalWeights": {
           "Gerência de Configuração": 1,
           "Gerência de Projeto": 1,
           "Qualidade de Software": 1
@@ -120,13 +120,13 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
+      "averageCalculationSpecification": {
+        "gradeWeights": {
           "MA": 10,
           "MPA": 7,
           "MANA": 0
         },
-        "pesosDasMetas": {
+        "goalWeights": {
           "Gerência de Configuração": 1,
           "Gerência de Projeto": 1,
           "Qualidade de Software": 1

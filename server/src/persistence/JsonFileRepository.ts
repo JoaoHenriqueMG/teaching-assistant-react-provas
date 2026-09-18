@@ -6,7 +6,7 @@ import { Classes } from '../models/Classes';
 import { Student } from '../models/Student';
 import { Class } from '../models/Class';
 import { Evaluation } from '../models/Evaluation';
-import { EspecificacaoDoCalculoDaMedia } from '../models/EspecificacaoDoCalculoDaMedia';
+import { AverageCalculationSpecification } from '../models/AverageCalculationSpecification';
 
 /**
  * Keeps the application state in a single JSON file.
@@ -15,10 +15,10 @@ import { EspecificacaoDoCalculoDaMedia } from '../models/EspecificacaoDoCalculoD
  * {
  *   "students": [{ "name", "cpf" (11 digits), "email" }],
  *   "classes": [{
- *     "topic", "semester", "year", "especificacaoDoCalculoDaMedia",
+ *     "topic", "semester", "year", "averageCalculationSpecification",
  *     "enrollments": [{
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
- *       "mediaPreFinal", "mediaPosFinal" (numbers or null), "reprovadoPorFalta" (boolean)
+ *       "averageBeforeFinalExam", "averageAfterFinalExam" (numbers or null), "failedByAbsence" (boolean)
  *     }]
  *   }]
  * }
@@ -42,13 +42,13 @@ export class JsonFileRepository implements AppStateRepository {
           topic: classObj.getTopic(),
           semester: classObj.getSemester(),
           year: classObj.getYear(),
-          especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+          averageCalculationSpecification: classObj.getAverageCalculationSpecification().toJSON(),
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
             evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
-            mediaPreFinal: enrollment.getMediaPreFinal(),
-            mediaPosFinal: enrollment.getMediaPosFinal(),
-            reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+            averageBeforeFinalExam: enrollment.getAverageBeforeFinalExam(),
+            averageAfterFinalExam: enrollment.getAverageAfterFinalExam(),
+            failedByAbsence: enrollment.getFailedByAbsence()
           }))
         }))
       };
@@ -103,7 +103,7 @@ export class JsonFileRepository implements AppStateRepository {
           classData.topic,
           classData.semester,
           classData.year,
-          EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia)
+          AverageCalculationSpecification.fromJSON(classData.averageCalculationSpecification)
         );
         classes.addClass(classObj);
         this.loadEnrollments(classData, classObj, students);
@@ -131,14 +131,14 @@ export class JsonFileRepository implements AppStateRepository {
         });
       }
       // Averages and attendance status, when present in the file
-      if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
-        enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+      if (typeof enrollmentData.averageBeforeFinalExam !== 'undefined') {
+        enrollment.setAverageBeforeFinalExam(enrollmentData.averageBeforeFinalExam);
       }
-      if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
-        enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+      if (typeof enrollmentData.averageAfterFinalExam !== 'undefined') {
+        enrollment.setAverageAfterFinalExam(enrollmentData.averageAfterFinalExam);
       }
-      if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
-        enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+      if (typeof enrollmentData.failedByAbsence !== 'undefined') {
+        enrollment.setFailedByAbsence(Boolean(enrollmentData.failedByAbsence));
       }
     });
   }

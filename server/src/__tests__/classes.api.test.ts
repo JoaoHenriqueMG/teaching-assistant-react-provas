@@ -42,9 +42,9 @@ describe('Class endpoints', () => {
       topic: 'Software Engineering',
       semester: 1,
       year: 2025,
-      especificacaoDoCalculoDaMedia: {
-        pesosDosConceitos: { MA: 10, MPA: 7, MANA: 0 },
-        pesosDasMetas: {
+      averageCalculationSpecification: {
+        gradeWeights: { MA: 10, MPA: 7, MANA: 0 },
+        goalWeights: {
           'Gerência de Configuração': 1,
           'Gerência de Projeto': 1,
           'Qualidade de Software': 1
@@ -167,7 +167,7 @@ describe('Class endpoints', () => {
       .post('/api/classes/gradeImport/any')
       .attach('file', Buffer.from('a,b\n1,2'), 'grades.csv')
       .expect(501);
-    expect(response.body.error).toBe('Endpoint ainda não implementado.');
+    expect(response.body.error).toBe('Endpoint not implemented yet.');
     expect(fs.existsSync('tmp_data')).toBe(false);
   });
 });
@@ -184,9 +184,9 @@ describe('Enrollment endpoints', () => {
     expect(response.body).toEqual({
       student: { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' },
       evaluations: [],
-      mediaPreFinal: null,
-      mediaPosFinal: null,
-      reprovadoPorFalta: false
+      averageBeforeFinalExam: null,
+      averageAfterFinalExam: null,
+      failedByAbsence: false
     });
     const list = await request(app).get('/api/classes').expect(200);
     expect(list.body[0].enrollments).toHaveLength(1);

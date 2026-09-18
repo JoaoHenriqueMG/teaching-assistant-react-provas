@@ -4,18 +4,18 @@ import { Evaluation, Grade } from './Evaluation';
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
-  // Média do estudante antes da prova final
-  private mediaPreFinal: number | null;
-  // Média do estudante depois da final
-  private mediaPosFinal: number | null;
-  private reprovadoPorFalta: Boolean;
+  // Student's average before the final exam (null until computed)
+  private averageBeforeFinalExam: number | null;
+  // Student's average after the final exam (null until computed)
+  private averageAfterFinalExam: number | null;
+  private failedByAbsence: boolean;
 
-  constructor(student: Student, evaluations: Evaluation[] = [], mediaPreFinal: number | null = null, mediaPosFinal: number | null = null, reprovadoPorFalta: Boolean = false) {
+  constructor(student: Student, evaluations: Evaluation[] = [], averageBeforeFinalExam: number | null = null, averageAfterFinalExam: number | null = null, failedByAbsence: boolean = false) {
     this.student = student;
     this.evaluations = evaluations;
-    this.mediaPreFinal = mediaPreFinal;
-    this.mediaPosFinal = mediaPosFinal;
-    this.reprovadoPorFalta = reprovadoPorFalta;
+    this.averageBeforeFinalExam = averageBeforeFinalExam;
+    this.averageAfterFinalExam = averageAfterFinalExam;
+    this.failedByAbsence = failedByAbsence;
   }
 
   // Get student
@@ -28,44 +28,44 @@ export class Enrollment {
     return [...this.evaluations]; // Return copy to prevent external modification
   }
 
-  // Calcula a média do estudante antes da prova final
-  calculateMediaPreFinal(): number {
-    throw new Error('calculateMedia() not implemented yet');
+  // Computes the student's average before the final exam
+  calculateAverageBeforeFinalExam(): number {
+    throw new Error('calculateAverage() not implemented yet');
   }
 
-  // Calcula a média do estudante depois da prova final
-  calculateMediaPosFinal(): number {
-    throw new Error('calculateMedia() not implemented yet');
+  // Computes the student's average after the final exam
+  calculateAverageAfterFinalExam(): number {
+    throw new Error('calculateAverage() not implemented yet');
   }
 
-  // Get media do estudante antes da prova final
-  getMediaPreFinal(): number | null {
-    return this.mediaPreFinal;
+  // Get the student's average before the final exam
+  getAverageBeforeFinalExam(): number | null {
+    return this.averageBeforeFinalExam;
   }
 
-  // Set media do estudante antes da prova final
-  setMediaPreFinal(mediaPreFinal: number | null){
-    this.mediaPreFinal = mediaPreFinal;
+  // Set the student's average before the final exam
+  setAverageBeforeFinalExam(averageBeforeFinalExam: number | null){
+    this.averageBeforeFinalExam = averageBeforeFinalExam;
   }
 
-  // Get média do estudante depois da final
-  getMediaPosFinal(): number | null {
-    return this.mediaPosFinal;
+  // Get the student's average after the final exam
+  getAverageAfterFinalExam(): number | null {
+    return this.averageAfterFinalExam;
   }
 
-  // Set média do estudante depois da final
-  setMediaPosFinal(mediaPosFinal: number | null){
-    this.mediaPosFinal = mediaPosFinal;
+  // Set the student's average after the final exam
+  setAverageAfterFinalExam(averageAfterFinalExam: number | null){
+    this.averageAfterFinalExam = averageAfterFinalExam;
   }
 
-  // Get reprovado por falta 
-  getReprovadoPorFalta(): Boolean {
-    return this.reprovadoPorFalta;
+  // Get whether the student failed by absence
+  getFailedByAbsence(): boolean {
+    return this.failedByAbsence;
   }
   
-  // Set reprovado por falta
-  setReprovadoPorFalta(reprovadoPorFalta: Boolean){
-    this.reprovadoPorFalta = reprovadoPorFalta;
+  // Set whether the student failed by absence
+  setFailedByAbsence(failedByAbsence: boolean){
+    this.failedByAbsence = failedByAbsence;
   }
 
   // Add or update an evaluation
@@ -98,9 +98,9 @@ export class Enrollment {
     return {
       student: this.student.toJSON(),
       evaluations: this.evaluations.map(evaluation => evaluation.toJSON()),
-      mediaPreFinal: this.mediaPreFinal,
-      mediaPosFinal: this.mediaPosFinal,
-      reprovadoPorFalta: this.reprovadoPorFalta
+      averageBeforeFinalExam: this.averageBeforeFinalExam,
+      averageAfterFinalExam: this.averageAfterFinalExam,
+      failedByAbsence: this.failedByAbsence
     };
   }
 
@@ -108,18 +108,18 @@ export class Enrollment {
   static fromJSON(data: { 
     student: any; 
     evaluations: any[];
-    mediaPreFinal?: number;
-    mediaPosFinal?: number;
-    reprovadoPorFalta?: boolean;
+    averageBeforeFinalExam?: number;
+    averageAfterFinalExam?: number;
+    failedByAbsence?: boolean;
   }, student: Student): Enrollment {
     const evaluations = data.evaluations
       ? data.evaluations.map((evalData: any) => Evaluation.fromJSON(evalData))
       : [];
     
-    const mediaPreFinal = data.mediaPreFinal ?? null;
-    const mediaPosFinal = data.mediaPosFinal ?? null;
-    const reprovadoPorFalta = data.reprovadoPorFalta ?? false;
+    const averageBeforeFinalExam = data.averageBeforeFinalExam ?? null;
+    const averageAfterFinalExam = data.averageAfterFinalExam ?? null;
+    const failedByAbsence = data.failedByAbsence ?? false;
     
-    return new Enrollment(student, evaluations, mediaPreFinal, mediaPosFinal, reprovadoPorFalta);
+    return new Enrollment(student, evaluations, averageBeforeFinalExam, averageAfterFinalExam, failedByAbsence);
   }
 }
