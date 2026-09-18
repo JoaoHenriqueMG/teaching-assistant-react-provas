@@ -1,12 +1,11 @@
 import { Given, When, Then, Before, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
-import { Browser, Page, launch } from 'puppeteer';
+import { Browser, ElementHandle, Page, launch } from 'puppeteer';
 import expect from 'expect';
+// The tests compare CPFs the way the interface shows them
+import { formatCPF } from '../types/CPF';
 
 // Set default timeout for all steps
 setDefaultTimeout(30 * 1000); // 30 seconds
-
-// The tests compare CPFs the way the interface shows them
-import { formatCPF } from '../types/CPF';
 
 let browser: Browser;
 let page: Page;
@@ -15,6 +14,56 @@ const serverUrl = 'http://localhost:3005';
 
 // Test data to clean up
 let testStudentCPF: string;
+
+/** Text of a cell of a student row, identified by its test id. */
+const cellText = async (row: ElementHandle<Element>, testId: string): Promise<string | null> => {
+  const cell = await row.$(`[data-testid="${testId}"]`);
+  return cell ? page.evaluate(el => el.textContent, cell) : null;
+};
+
+/**
+ * The row of the student list whose CPF is the given one, in either the
+ * plain or the formatted spelling, or null when there is no such row.
+ */
+const findStudentRow = async (cpf: string): Promise<ElementHandle<Element> | null> => {
+  for (const row of await page.$$('[data-testid^="student-row-"]')) {
+    const displayedCPF = await cellText(row, 'student-cpf');
+    if (displayedCPF === cpf || displayedCPF === formatCPF(cpf)) {
+      return row;
+    }
+  }
+  return null;
+};
+
+/** Deletes, through the interface, the student with the given CPF, if listed. */
+const deleteStudentIfListed = async (cpf: string): Promise<void> => {
+  const row = await findStudentRow(cpf);
+  if (!row) {
+    return;
+  }
+  const displayedCPF = await cellText(row, 'student-cpf');
+  // Set up dialog handler before clicking delete
+  page.once('dialog', async (dialog) => {
+    console.log(`GUI cleanup: Confirming deletion dialog: ${dialog.message()}`);
+    await dialog.accept(); // Confirm deletion
+  });
+  const deleteButton = await row.$(`[data-testid="delete-student-${displayedCPF}"]`);
+  if (deleteButton) {
+    await deleteButton.click();
+    // Wait for deletion to complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`GUI cleanup: Removed student with CPF: ${displayedCPF}`);
+  }
+};
+
+/** The row of the test student, failing the step when it is not listed. */
+const requireTestStudentRow = async (): Promise<ElementHandle<Element>> => {
+  // Wait for the student list to update
+  await page.waitForSelector('.students-list table', { timeout: 10000 });
+  const row = await findStudentRow(testStudentCPF);
+  expect(row).toBeTruthy();
+  return row!;
+};
 
 Before({ tags: '@gui' }, async function () {
   browser = await launch({ 
@@ -29,36 +78,9 @@ After({ tags: '@gui' }, async function () {
   // Clean up test student if it exists by using the GUI delete function
   if (testStudentCPF) {
     try {
-      // Navigate to Students area
       await page.goto(baseUrl);
       await page.waitForSelector('.students-list table', { timeout: 5000 });
-      
-      // Look for our test student in the table and delete it if found
-      const studentRows = await page.$$('[data-testid^="student-row-"]');
-      for (const row of studentRows) {
-        const cpfCell = await row.$('[data-testid="student-cpf"]');
-        if (cpfCell) {
-          const cpf = await page.evaluate(el => el.textContent, cpfCell);
-          // Check for both plain and formatted CPF
-          if (cpf === testStudentCPF || cpf === formatCPF(testStudentCPF)) {
-            // Set up dialog handler before clicking delete
-            page.once('dialog', async (dialog) => {
-              console.log(`GUI cleanup: Confirming deletion dialog: ${dialog.message()}`);
-              await dialog.accept(); // Confirm deletion
-            });
-            
-            // Click the delete button for this student
-            const deleteButton = await row.$(`[data-testid="delete-student-${cpf}"]`);
-            if (deleteButton) {
-              await deleteButton.click();
-              // Wait for deletion to complete
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              console.log(`GUI cleanup: Removed test student with CPF: ${cpf}`);
-              break;
-            }
-          }
-        }
-      }
+      await deleteStudentIfListed(testStudentCPF);
     } catch (error) {
       console.log('GUI cleanup: Student may not exist or GUI unavailable');
     }
@@ -87,52 +109,21 @@ Given('the server is available', async function () {
 
 Given('there is no student with CPF {string} in the system', async function (cpf: string) {
   testStudentCPF = cpf;
-  const formattedCPF = formatCPF(cpf);
   
   // Navigate to the application and check if student exists through GUI
   await page.goto(baseUrl);
   await page.waitForSelector('.students-list', { timeout: 10000 });
   
-  // Try to find and delete the student if it exists (cleanup before test)
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const displayedCPF = await page.evaluate(el => el.textContent, cpfCell);
-      // Check for both plain and formatted CPF
-      if (displayedCPF === cpf || displayedCPF === formattedCPF) {
-        // Student exists, delete it for clean test state
-        // Set up dialog handler before clicking delete
-        page.once('dialog', async (dialog) => {
-          console.log(`GUI cleanup: Confirming deletion dialog: ${dialog.message()}`);
-          await dialog.accept(); // Confirm deletion
-        });
-        
-        const deleteButton = await row.$(`[data-testid="delete-student-${displayedCPF}"]`);
-        if (deleteButton) {
-          await deleteButton.click();
-          // Wait for deletion to complete
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log(`GUI cleanup: Removed existing student with CPF: ${displayedCPF}`);
-          break;
-        }
-      }
-    }
-  }
+  // Delete the student if it exists (cleanup before test)
+  await deleteStudentIfListed(cpf);
   
   // Verify student doesn't exist by checking the GUI
   await page.reload(); // Refresh to ensure clean state
   await page.waitForSelector('.students-list', { timeout: 5000 });
   
-  const updatedRows = await page.$$('[data-testid^="student-row-"]');
-  for (const row of updatedRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const displayedCPF = await page.evaluate(el => el.textContent, cpfCell);
-      if (displayedCPF === cpf || displayedCPF === formattedCPF) {
-        throw new Error(`Student with CPF ${displayedCPF} still exists in the system after cleanup`);
-      }
-    }
+  const remainingRow = await findStudentRow(cpf);
+  if (remainingRow) {
+    throw new Error(`Student with CPF ${cpf} still exists in the system after cleanup`);
   }
 });
 
@@ -154,18 +145,12 @@ When('I navigate to the Students area', async function () {
 When('I provide the student information:', async function (dataTable: DataTable) {
   const data = dataTable.rowsHash();
   
-  // Fill in the name field using semantic ID
-  await page.waitForSelector('#name');
-  await page.click('#name');
-  await page.type('#name', data.name);
-  
-  // Fill in the CPF field using semantic ID
-  await page.click('#cpf');
-  await page.type('#cpf', data.cpf);
-  
-  // Fill in the email field using semantic ID
-  await page.click('#email');
-  await page.type('#email', data.email);
+  // Fill in each field using its semantic ID
+  for (const [id, value] of [['name', data.name], ['cpf', data.cpf], ['email', data.email]]) {
+    await page.waitForSelector(`#${id}`);
+    await page.click(`#${id}`);
+    await page.type(`#${id}`, value);
+  }
 });
 
 When('I send the student information', async function () {
@@ -180,83 +165,16 @@ When('I send the student information', async function () {
 });
 
 Then('I should see {string} in the student list', async function (studentName: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
-  
-  // Find the student row that matches our test student's CPF and verify the name
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
-  
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === formatCPF(testStudentCPF) || cpf === testStudentCPF) {
-        foundStudent = row;
-        break;
-      }
-    }
-  }
-  
-  expect(foundStudent).toBeTruthy();
-  
-  // Verify the name matches exactly for this specific student
-  const nameCell = await foundStudent!.$('[data-testid="student-name"]');
-  const actualName = await page.evaluate(el => el.textContent, nameCell!);
-  expect(actualName).toBe(studentName);
+  const row = await requireTestStudentRow();
+  expect(await cellText(row, 'student-name')).toBe(studentName);
 });
 
 Then('the student should have CPF {string}', async function (expectedCPF: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
-  
-  // Find all student information from the current test student
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
-  
-  // First, find the student row that matches our test CPF
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === expectedCPF || cpf === testStudentCPF || cpf === formatCPF(testStudentCPF)) {
-        foundStudent = row;
-        break;
-      }
-    }
-  }
-  
-  expect(foundStudent).toBeTruthy();
-  
-  // Verify the CPF matches exactly
-  const cpfCell = await foundStudent!.$('[data-testid="student-cpf"]');
-  const actualCPF = await page.evaluate(el => el.textContent, cpfCell!);
-  expect(actualCPF).toBe(expectedCPF);
+  const row = await requireTestStudentRow();
+  expect(await cellText(row, 'student-cpf')).toBe(expectedCPF);
 });
 
 Then('the student should have email {string}', async function (expectedEmail: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
-  
-  // Find the student row that matches our test student's CPF
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
-  
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === formatCPF(testStudentCPF) || cpf === testStudentCPF) {
-        foundStudent = row;
-        break;
-      }
-    }
-  }
-  
-  expect(foundStudent).toBeTruthy();
-  
-  // Verify the email matches exactly for this specific student
-  const emailCell = await foundStudent!.$('[data-testid="student-email"]');
-  const actualEmail = await page.evaluate(el => el.textContent, emailCell!);
-  expect(actualEmail).toBe(expectedEmail);
+  const row = await requireTestStudentRow();
+  expect(await cellText(row, 'student-email')).toBe(expectedEmail);
 });
