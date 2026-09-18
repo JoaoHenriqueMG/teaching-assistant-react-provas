@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Student } from '../types/Student';
+import { formatCPF } from '../types/CPF';
 import { Class } from '../types/Class';
 import { studentService } from '../services/StudentService';
 import { enrollmentService } from '../services/EnrollmentService';
@@ -95,17 +96,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
     }));
   };
 
-  const formatCPF = (value: string) => {
-    // Remove non-digits
-    const digits = value.replace(/\D/g, '');
-    
-    // Apply CPF mask (000.000.000-00)
-    if (digits.length <= 11) {
-      return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-    return digits.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };
-
   const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCPF(e.target.value);
     setFormData(prev => ({
@@ -120,7 +110,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
         {editingStudent ? (
           <>
             Edit Student
-            <span style={{ fontSize: '0.8em', color: '#666', marginLeft: '10px' }}>
+            <span className="editing-student-cpf">
               (CPF: {editingStudent.cpf})
             </span>
           </>
@@ -131,16 +121,9 @@ const StudentForm: React.FC<StudentFormProps> = ({
       
       {/* Class enrollment indicator */}
       {!editingStudent && selectedClass && (
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#e8f5e8', 
-          border: '1px solid #4caf50', 
-          borderRadius: '4px',
-          marginBottom: '15px',
-          fontSize: '0.9em'
-        }}>
+        <div className="auto-enrollment-notice">
           <strong>Auto-enrollment:</strong> New student will be automatically enrolled in{' '}
-          <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>
+          <span className="auto-enrollment-class">
             {selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})
           </span>
         </div>

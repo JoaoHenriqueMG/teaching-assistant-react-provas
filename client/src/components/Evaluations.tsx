@@ -75,7 +75,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     return (
       <div className="evaluation-section">
         <h3>Evaluations</h3>
-        <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div className="evaluation-loading">
           Loading classes...
         </div>
       </div>
@@ -105,28 +105,14 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       </div>
 
       {!selectedClass && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
-          textAlign: 'center',
-          color: '#666',
-          marginTop: '20px'
-        }}>
+        <div className="evaluation-placeholder">
           <h4>No Class Selected</h4>
           <p>Please select a class to view and manage evaluations.</p>
         </div>
       )}
 
       {selectedClass && selectedClass.enrollments.length === 0 && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
-          textAlign: 'center',
-          color: '#666',
-          marginTop: '20px'
-        }}>
+        <div className="evaluation-placeholder">
           <h4>No Students Enrolled</h4>
           <p>This class has no enrolled students yet.</p>
           <p>Add students in the Students tab first.</p>

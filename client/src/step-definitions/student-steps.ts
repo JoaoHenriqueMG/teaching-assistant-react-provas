@@ -5,14 +5,8 @@ import expect from 'expect';
 // Set default timeout for all steps
 setDefaultTimeout(30 * 1000); // 30 seconds
 
-// Helper function to format CPF like the frontend does
-function formatCPF(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (digits.length <= 11) {
-    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  }
-  return digits.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-}
+// The tests compare CPFs the way the interface shows them
+import { formatCPF } from '../types/CPF';
 
 let browser: Browser;
 let page: Page;

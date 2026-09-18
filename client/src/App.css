@@ -1193,3 +1193,39 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+/* Notice shown by the student form when a class is selected */
+.auto-enrollment-notice {
+  padding: 10px;
+  background-color: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.auto-enrollment-class {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+/* CPF of the student being edited, beside the form title */
+.editing-student-cpf {
+  font-size: 0.8em;
+  color: #666;
+  margin-left: 10px;
+}
+
+/* Placeholders of the evaluations tab: no class selected, no student enrolled */
+.evaluation-placeholder {
+  padding: 20px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+  margin-top: 20px;
+}
+
+.evaluation-loading {
+  padding: 20px;
+  text-align: center;
+}
