@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Class } from '../types/Class';
 import { EVALUATION_GOALS, GRADES } from '../types/Evaluation';
-import ClassService from '../services/ClassService';
-import EnrollmentService from '../services/EnrollmentService';
+import { classService } from '../services/ClassService';
+import { enrollmentService } from '../services/EnrollmentService';
 
 import { ImportGradeComponent } from './ImportGrade';
 
@@ -22,7 +22,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const loadClasses = useCallback(async () => {
     try {
       setIsLoading(true);
-      const classesData = await ClassService.getAllClasses();
+      const classesData = await classService.getAllClasses();
       setClasses(classesData);
     } catch (error) {
       onError(`Failed to load classes: ${(error as Error).message}`);
@@ -63,7 +63,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
 
     try {
-      await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
+      await enrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
       // Reload classes to get updated enrollment data
       await loadClasses();
     } catch (error) {

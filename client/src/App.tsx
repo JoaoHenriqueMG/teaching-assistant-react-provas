@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Student } from './types/Student';
 import { Class } from './types/Class';
 import { studentService } from './services/StudentService';
-import ClassService from './services/ClassService';
+import { classService } from './services/ClassService';
 import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
@@ -37,7 +37,7 @@ const App: React.FC = () => {
   const loadClasses = useCallback(async () => {
     try {
       setError('');
-      const classesData = await ClassService.getAllClasses();
+      const classesData = await classService.getAllClasses();
       setClasses(classesData);
       return classesData;
     } catch (err) {

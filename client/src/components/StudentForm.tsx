@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Student } from '../types/Student';
 import { Class } from '../types/Class';
 import { studentService } from '../services/StudentService';
-import EnrollmentService from '../services/EnrollmentService';
+import { enrollmentService } from '../services/EnrollmentService';
 
 interface StudentFormProps {
   onStudentAdded: () => void;      // Callback when student is successfully added
@@ -66,7 +66,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
         // Auto-enroll in selected class if one is selected
         if (selectedClass) {
           try {
-            await EnrollmentService.enrollStudent(selectedClass.id, newStudent.cpf);
+            await enrollmentService.enrollStudent(selectedClass.id, newStudent.cpf);
             console.log(`Student ${newStudent.name} enrolled in ${selectedClass.topic}`);
           } catch (enrollmentError) {
             // Student was created but enrollment failed - show warning

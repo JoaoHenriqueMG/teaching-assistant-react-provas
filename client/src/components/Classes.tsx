@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Class, CreateClassRequest } from '../types/Class';
 import { Student } from '../types/Student';
-import ClassService from '../services/ClassService';
+import { classService } from '../services/ClassService';
 import { studentService } from '../services/StudentService';
-import EnrollmentService from '../services/EnrollmentService';
+import { enrollmentService } from '../services/EnrollmentService';
 
 interface ClassesProps {
   classes: Class[];
@@ -60,7 +60,7 @@ const Classes: React.FC<ClassesProps> = ({
     try {
       // Enroll each selected student
       const enrollmentPromises = Array.from(selectedStudentsForEnrollment).map(studentCPF =>
-        EnrollmentService.enrollStudent(enrollmentPanelClass.id, studentCPF)
+        enrollmentService.enrollStudent(enrollmentPanelClass.id, studentCPF)
       );
       
       await Promise.all(enrollmentPromises);
@@ -144,12 +144,12 @@ const Classes: React.FC<ClassesProps> = ({
     try {
       if (editingClass) {
         // Update existing class
-        await ClassService.updateClass(editingClass.id, formData);
+        await classService.updateClass(editingClass.id, formData);
         onClassUpdated();
         setEditingClass(null);
       } else {
         // Add new class
-        await ClassService.addClass(formData);
+        await classService.addClass(formData);
         onClassAdded();
       }
       
@@ -190,7 +190,7 @@ const Classes: React.FC<ClassesProps> = ({
   const handleDelete = async (classObj: Class) => {
     if (window.confirm(`Are you sure you want to delete the class "${classObj.topic} (${classObj.year}/${classObj.semester})"?`)) {
       try {
-        await ClassService.deleteClass(classObj.id);
+        await classService.deleteClass(classObj.id);
         onClassDeleted();
       } catch (error) {
         onError((error as Error).message);

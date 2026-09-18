@@ -2,20 +2,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StudentForm from '../components/StudentForm';
 import { studentService } from '../services/StudentService';
-import EnrollmentService from '../services/EnrollmentService';
+import { enrollmentService } from '../services/EnrollmentService';
 
 jest.mock('../services/StudentService', () => ({
   studentService: { createStudent: jest.fn(), updateStudent: jest.fn() }
 }));
 jest.mock('../services/EnrollmentService', () => ({
-  __esModule: true,
-  default: { enrollStudent: jest.fn() }
+  enrollmentService: { enrollStudent: jest.fn() }
 }));
 
 const mocked = {
   createStudent: studentService.createStudent as jest.Mock,
   updateStudent: studentService.updateStudent as jest.Mock,
-  enrollStudent: EnrollmentService.enrollStudent as jest.Mock
+  enrollStudent: enrollmentService.enrollStudent as jest.Mock
 };
 
 const ana = { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' };

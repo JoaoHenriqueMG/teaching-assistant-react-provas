@@ -2,23 +2,21 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { studentService } from '../services/StudentService';
-import ClassService from '../services/ClassService';
+import { classService } from '../services/ClassService';
 import { ana, bruno, softwareEngineering, databases } from '../test-support/fixtures';
 
 jest.mock('../services/StudentService', () => ({
   studentService: { getAllStudents: jest.fn(), createStudent: jest.fn(), updateStudent: jest.fn(), deleteStudent: jest.fn() }
 }));
 jest.mock('../services/ClassService', () => ({
-  __esModule: true,
-  default: { getAllClasses: jest.fn(), addClass: jest.fn(), updateClass: jest.fn(), deleteClass: jest.fn() }
+  classService: { getAllClasses: jest.fn(), addClass: jest.fn(), updateClass: jest.fn(), deleteClass: jest.fn() }
 }));
 jest.mock('../services/EnrollmentService', () => ({
-  __esModule: true,
-  default: { enrollStudent: jest.fn(), updateEvaluation: jest.fn() }
+  enrollmentService: { enrollStudent: jest.fn(), updateEvaluation: jest.fn() }
 }));
 
 const getAllStudents = studentService.getAllStudents as jest.Mock;
-const getAllClasses = ClassService.getAllClasses as jest.Mock;
+const getAllClasses = classService.getAllClasses as jest.Mock;
 
 describe('App', () => {
   beforeEach(() => {

@@ -1,12 +1,12 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Evaluations from '../components/Evaluations';
-import ClassService from '../services/ClassService';
-import EnrollmentService from '../services/EnrollmentService';
+import { classService } from '../services/ClassService';
+import { enrollmentService } from '../services/EnrollmentService';
 import { softwareEngineering, databases } from '../test-support/fixtures';
 
-jest.mock('../services/ClassService', () => ({ __esModule: true, default: { getAllClasses: jest.fn() } }));
-jest.mock('../services/EnrollmentService', () => ({ __esModule: true, default: { updateEvaluation: jest.fn() } }));
+jest.mock('../services/ClassService', () => ({ classService: { getAllClasses: jest.fn() } }));
+jest.mock('../services/EnrollmentService', () => ({ enrollmentService: { updateEvaluation: jest.fn() } }));
 
 const GOALS = ['Requirements', 'Configuration Management', 'Project Management', 'Design', 'Tests', 'Refactoring'];
 
@@ -14,7 +14,7 @@ describe('Evaluations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    (ClassService.getAllClasses as jest.Mock).mockResolvedValue([softwareEngineering, databases]);
+    (classService.getAllClasses as jest.Mock).mockResolvedValue([softwareEngineering, databases]);
   });
 
   test('asks for a class until one is selected', async () => {
@@ -47,20 +47,20 @@ describe('Evaluations', () => {
 
   test('changing a grade updates the evaluation and reloads the classes', async () => {
     const user = userEvent.setup();
-    (EnrollmentService.updateEvaluation as jest.Mock).mockResolvedValue({});
+    (enrollmentService.updateEvaluation as jest.Mock).mockResolvedValue({});
     const onError = jest.fn();
     render(<Evaluations onError={onError} />);
     await user.selectOptions(await screen.findByLabelText('Select Class:'), 'Software Engineering-2025-1');
     const row = screen.getByRole('row', { name: /Ana Lima/ });
     await user.selectOptions(within(row).getAllByRole('combobox')[4], 'MA');
-    await waitFor(() => expect(EnrollmentService.updateEvaluation).toHaveBeenCalledWith('Software Engineering-2025-1', '123.456.789-01', 'Tests', 'MA'));
-    await waitFor(() => expect(ClassService.getAllClasses).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(enrollmentService.updateEvaluation).toHaveBeenCalledWith('Software Engineering-2025-1', '123.456.789-01', 'Tests', 'MA'));
+    await waitFor(() => expect(classService.getAllClasses).toHaveBeenCalledTimes(2));
     expect(onError).not.toHaveBeenCalled();
   });
 
   test('reports a failed grade update', async () => {
     const user = userEvent.setup();
-    (EnrollmentService.updateEvaluation as jest.Mock).mockRejectedValue(new Error('Class not found'));
+    (enrollmentService.updateEvaluation as jest.Mock).mockRejectedValue(new Error('Class not found'));
     const onError = jest.fn();
     render(<Evaluations onError={onError} />);
     await user.selectOptions(await screen.findByLabelText('Select Class:'), 'Software Engineering-2025-1');

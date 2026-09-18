@@ -2,16 +2,15 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Classes from '../components/Classes';
 import { studentService } from '../services/StudentService';
-import ClassService from '../services/ClassService';
-import EnrollmentService from '../services/EnrollmentService';
+import { classService } from '../services/ClassService';
+import { enrollmentService } from '../services/EnrollmentService';
 import { ana, bruno, softwareEngineering, databases } from '../test-support/fixtures';
 
 jest.mock('../services/StudentService', () => ({ studentService: { getAllStudents: jest.fn() } }));
 jest.mock('../services/ClassService', () => ({
-  __esModule: true,
-  default: { addClass: jest.fn(), updateClass: jest.fn(), deleteClass: jest.fn() }
+  classService: { addClass: jest.fn(), updateClass: jest.fn(), deleteClass: jest.fn() }
 }));
-jest.mock('../services/EnrollmentService', () => ({ __esModule: true, default: { enrollStudent: jest.fn() } }));
+jest.mock('../services/EnrollmentService', () => ({ enrollmentService: { enrollStudent: jest.fn() } }));
 
 const renderClasses = async (classes = [softwareEngineering, databases]) => {
   const callbacks = { onClassAdded: jest.fn(), onClassUpdated: jest.fn(), onClassDeleted: jest.fn(), onError: jest.fn() };
@@ -45,14 +44,14 @@ describe('Classes', () => {
 
   test('adds a class with the typed topic, year and semester and resets the form', async () => {
     const user = userEvent.setup();
-    (ClassService.addClass as jest.Mock).mockResolvedValue(databases);
+    (classService.addClass as jest.Mock).mockResolvedValue(databases);
     const callbacks = await renderClasses();
     await user.type(screen.getByLabelText('Topic:'), 'Databases');
     await user.selectOptions(screen.getByLabelText('Year:'), '2024');
     await user.selectOptions(screen.getByLabelText('Semester:'), '2');
     await user.click(screen.getByRole('button', { name: 'Add Class' }));
     await waitFor(() => expect(callbacks.onClassAdded).toHaveBeenCalled());
-    expect(ClassService.addClass).toHaveBeenCalledWith({ topic: 'Databases', semester: 2, year: 2024 });
+    expect(classService.addClass).toHaveBeenCalledWith({ topic: 'Databases', semester: 2, year: 2024 });
     expect((screen.getByLabelText('Topic:') as HTMLInputElement).value).toBe('');
     expect((screen.getByLabelText('Semester:') as HTMLSelectElement).value).toBe('1');
   });
@@ -63,12 +62,12 @@ describe('Classes', () => {
     await user.type(screen.getByLabelText('Topic:'), '   ');
     await user.click(screen.getByRole('button', { name: 'Add Class' }));
     expect(callbacks.onError).toHaveBeenCalledWith('Topic is required');
-    expect(ClassService.addClass).not.toHaveBeenCalled();
+    expect(classService.addClass).not.toHaveBeenCalled();
   });
 
   test('reports a failed creation', async () => {
     const user = userEvent.setup();
-    (ClassService.addClass as jest.Mock).mockRejectedValue(new Error('Class with same topic, year, and semester already exists'));
+    (classService.addClass as jest.Mock).mockRejectedValue(new Error('Class with same topic, year, and semester already exists'));
     const callbacks = await renderClasses();
     await user.type(screen.getByLabelText('Topic:'), 'Databases');
     await user.click(screen.getByRole('button', { name: 'Add Class' }));
@@ -77,7 +76,7 @@ describe('Classes', () => {
 
   test('Edit fills the form and Update Class sends the changes; Cancel resets it', async () => {
     const user = userEvent.setup();
-    (ClassService.updateClass as jest.Mock).mockResolvedValue(softwareEngineering);
+    (classService.updateClass as jest.Mock).mockResolvedValue(softwareEngineering);
     const callbacks = await renderClasses();
     await user.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
     expect(screen.getByRole('heading', { name: 'Edit Class' })).toBeInTheDocument();
@@ -85,7 +84,7 @@ describe('Classes', () => {
     await user.selectOptions(screen.getByLabelText('Semester:'), '2');
     await user.click(screen.getByRole('button', { name: 'Update Class' }));
     await waitFor(() => expect(callbacks.onClassUpdated).toHaveBeenCalled());
-    expect(ClassService.updateClass).toHaveBeenCalledWith('Software Engineering-2025-1', { topic: 'Software Engineering', semester: 2, year: 2025 });
+    expect(classService.updateClass).toHaveBeenCalledWith('Software Engineering-2025-1', { topic: 'Software Engineering', semester: 2, year: 2025 });
     expect(screen.getByRole('heading', { name: 'Add New Class' })).toBeInTheDocument();
 
     await user.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
@@ -97,18 +96,18 @@ describe('Classes', () => {
   test('Delete asks for confirmation, deletes and notifies', async () => {
     const user = userEvent.setup();
     const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    (ClassService.deleteClass as jest.Mock).mockResolvedValue(undefined);
+    (classService.deleteClass as jest.Mock).mockResolvedValue(undefined);
     const callbacks = await renderClasses();
     await user.click(screen.getAllByRole('button', { name: 'Delete' })[1]);
     expect(confirm).toHaveBeenCalledWith('Are you sure you want to delete the class "Databases (2024/2)"?');
     await waitFor(() => expect(callbacks.onClassDeleted).toHaveBeenCalled());
-    expect(ClassService.deleteClass).toHaveBeenCalledWith('Databases-2024-2');
+    expect(classService.deleteClass).toHaveBeenCalledWith('Databases-2024-2');
     confirm.mockRestore();
   });
 
   test('the enrollment panel lists enrolled and available students and enrolls the selected ones', async () => {
     const user = userEvent.setup();
-    (EnrollmentService.enrollStudent as jest.Mock).mockResolvedValue({});
+    (enrollmentService.enrollStudent as jest.Mock).mockResolvedValue({});
     const callbacks = await renderClasses();
     await user.click(screen.getAllByRole('button', { name: 'Enroll' })[0]);
     expect(screen.getByRole('heading', { name: 'Enroll Students in Software Engineering' })).toBeInTheDocument();
@@ -124,7 +123,7 @@ describe('Classes', () => {
     await user.click(screen.getByText('Bruno Melo'));
     await user.click(screen.getByRole('button', { name: 'Enroll 1 Student' }));
     await waitFor(() => expect(callbacks.onClassUpdated).toHaveBeenCalled());
-    expect(EnrollmentService.enrollStudent).toHaveBeenCalledWith('Software Engineering-2025-1', '987.654.321-00');
+    expect(enrollmentService.enrollStudent).toHaveBeenCalledWith('Software Engineering-2025-1', '987.654.321-00');
     expect(callbacks.onError).toHaveBeenLastCalledWith('');
     expect(screen.queryByRole('heading', { name: /Enroll Students in/ })).not.toBeInTheDocument();
   });

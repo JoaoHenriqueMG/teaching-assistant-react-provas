@@ -16,7 +16,7 @@ describe('studentService', () => {
   test('getAllStudents GETs /api/students', async () => {
     respond(200, [{ name: 'Ana', cpf: '123.456.789-01', email: 'a@a.com' }]);
     await expect(studentService.getAllStudents()).resolves.toEqual([{ name: 'Ana', cpf: '123.456.789-01', email: 'a@a.com' }]);
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3005/api/students');
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3005/api/students', undefined);
   });
 
   test('getAllStudents rejects when the response is not ok', async () => {
@@ -65,6 +65,6 @@ describe('studentService', () => {
   test('getStudentByCPF GETs /api/students/:cpf', async () => {
     respond(200, { name: 'Ana', cpf: '123.456.789-01', email: 'a@a.com' });
     await expect(studentService.getStudentByCPF('123.456.789-01')).resolves.toMatchObject({ name: 'Ana' });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3005/api/students/123.456.789-01');
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3005/api/students/123.456.789-01', undefined);
   });
 });
