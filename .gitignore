@@ -11,3 +11,5 @@ coverage/
 
 # multer folder
 tmp_data/
+# macOS metadata
+.DS_Store
