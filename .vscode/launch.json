@@ -27,7 +27,7 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/server/node_modules/.bin/ts-node-dev",
-      "args": ["--respawn", "--transpile-only", "src/server.ts"],
+      "args": ["--respawn", "--transpile-only", "src/index.ts"],
       "cwd": "${workspaceFolder}/server",
       "console": "integratedTerminal",
       "env": {

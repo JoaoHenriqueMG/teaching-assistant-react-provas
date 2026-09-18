@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { app, studentSet, classes } from '../server';
+import { Express } from 'express';
+import { newTestApp } from './support/newTestApp';
 
 /**
  * Service tests for the class, enrollment and evaluation endpoints.
@@ -14,9 +15,10 @@ const softwareEngineeringId = 'Software Engineering-2025-1';
 
 const classPath = (classId: string) => `/api/classes/${encodeURIComponent(classId)}`;
 
+// A fresh application (and therefore empty collections) for each test
+let app: Express;
 const clearState = () => {
-  studentSet.getAllStudents().forEach(s => studentSet.removeStudent(s.getCPF()));
-  classes.getAllClasses().forEach(c => classes.removeClass(c.getClassId()));
+  app = newTestApp();
 };
 
 const createStudent = (data = student) => request(app).post('/api/students').send(data).expect(201);

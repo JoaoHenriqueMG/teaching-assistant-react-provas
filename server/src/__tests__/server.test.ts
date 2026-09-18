@@ -1,27 +1,12 @@
 import request from 'supertest';
-import { app, studentSet, classes } from '../server';
+import { Express } from 'express';
+import { newTestApp } from './support/newTestApp';
 
 describe('Server API - Student Endpoints', () => {
-  // Clean up data before each test to ensure isolation
+  // A fresh application (and therefore empty collections) for each test
+  let app: Express;
   beforeEach(() => {
-    // Clear all students and classes for clean test state
-    const allStudents = studentSet.getAllStudents();
-    allStudents.forEach(student => {
-      try {
-        studentSet.removeStudent(student.getCPF());
-      } catch (error) {
-        // Student might not exist, which is fine for cleanup
-      }
-    });
-
-    const allClasses = classes.getAllClasses();
-    allClasses.forEach(classObj => {
-      try {
-        classes.removeClass(classObj.getClassId());
-      } catch (error) {
-        // Class might not exist, which is fine for cleanup
-      }
-    });
+    app = newTestApp();
   });
 
   describe('POST /api/students - Student Creation', () => {
