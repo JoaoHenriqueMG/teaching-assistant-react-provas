@@ -1,42 +1,16 @@
 #!/bin/bash
+# Installs the dependencies of the client and of the server.
+# Equivalent to running "npm install" at the root of the project, which npm
+# workspaces expand to both packages.
 
-echo "🚀 Installing Student Management System Dependencies..."
-echo ""
+set -e
 
-# Install server dependencies
-echo "📦 Installing server dependencies..."
-cd server
+echo "Installing the Teaching Assistant dependencies..."
 npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Server installation failed"
-    exit 1
-fi
-echo "✅ Server dependencies installed successfully"
-echo ""
 
-# Install client dependencies
-echo "📦 Installing client dependencies..."
-cd ../client
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Client installation failed"
-    exit 1
-fi
-echo "✅ Client dependencies installed successfully"
 echo ""
-
-echo "🎉 All dependencies installed successfully!"
+echo "Done. To start the application, run:"
+echo "  npm run dev"
 echo ""
-echo "To start the application:"
-echo "1. Open in VS Code"
-echo "2. Go to Run & Debug (Ctrl+Shift+D / Cmd+Shift+D)"
-echo "3. Select 'Launch Full Stack'"
-echo "4. Press F5 or click the play button"
-echo ""
-echo "Or start manually:"
-echo "Server: cd server && npm run dev"
-echo "Client: cd client && npm start"
-echo ""
-echo "URLs:"
 echo "Client: http://localhost:3004"
 echo "Server: http://localhost:3005"

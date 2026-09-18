@@ -104,7 +104,7 @@ npm run test:cucumber       # Terminal 2: executar testes
 ```
 
 **Testar manualmente:**
-- Servidor: `http://localhost:3000`
+- Servidor: `http://localhost:3005`
 - Cliente: `http://localhost:3004`
 
 ## 📸 Screenshots/GIFs
