@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Class, CreateClassRequest, getClassId } from '../types/Class';
+import { Class, CreateClassRequest } from '../types/Class';
 import { Student } from '../types/Student';
 import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
@@ -291,7 +291,7 @@ const Classes: React.FC<ClassesProps> = ({
               </thead>
               <tbody>
                 {classes.map((classObj) => (
-                  <tr key={getClassId(classObj)}>
+                  <tr key={classObj.id}>
                     <td><strong>{classObj.topic}</strong></td>
                     <td><strong>{classObj.year}</strong></td>
                     <td><strong>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</strong></td>

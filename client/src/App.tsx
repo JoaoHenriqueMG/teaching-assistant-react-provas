@@ -50,11 +50,7 @@ const App: React.FC = () => {
   const updateSelectedClass = useCallback((classesData: Class[]) => {
     // Update selectedClass if it exists to reflect new enrollments
     if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
-        c.semester === selectedClass.semester
-      );
+      const updatedSelectedClass = classesData.find(c => c.id === selectedClass.id);
       if (updatedSelectedClass) {
         setSelectedClass(updatedSelectedClass);
       }
@@ -157,24 +153,16 @@ const App: React.FC = () => {
                 <label htmlFor="class-select">Filter by Class:</label>
                 <select
                   id="class-select"
-                  value={selectedClass ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}` : ''}
+                  value={selectedClass ? selectedClass.id : ''}
                   onChange={(e) => {
                     const classId = e.target.value;
-                    if (classId) {
-                      const classObj = classes.find(c => `${c.topic}-${c.year}-${c.semester}` === classId);
-                      setSelectedClass(classObj || null);
-                    } else {
-                      setSelectedClass(null);
-                    }
+                    setSelectedClass(classes.find(c => c.id === classId) || null);
                   }}
                   className="class-selector"
                 >
                   <option value="">All Students</option>
                   {classes.map((classObj) => (
-                    <option 
-                      key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                      value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                    >
+                    <option key={classObj.id} value={classObj.id}>
                       {classObj.topic} ({classObj.year}/{classObj.semester})
                     </option>
                   ))}
