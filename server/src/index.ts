@@ -7,8 +7,11 @@ import { JsonFileRepository } from './persistence/JsonFileRepository';
 /**
  * Composition root: creates the collections, loads the persisted state and
  * starts the HTTP server.
+ *
+ * The port comes from the PORT environment variable (set by hosting
+ * services and by the root package.json scripts); 3005 is the default.
  */
-const PORT = 3005;
+const PORT = Number(process.env.PORT) || 3005;
 
 const students = new StudentSet();
 const classes = new Classes();
