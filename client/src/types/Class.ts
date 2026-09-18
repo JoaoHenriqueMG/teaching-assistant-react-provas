@@ -10,11 +10,11 @@ export interface Class {
   enrollments: Enrollment[];
 }
 
+/** Fields a client provides to create or update a class (the server assigns the default average specification). */
 export interface CreateClassRequest {
   topic: string;
   semester: number;
   year: number;
-  averageCalculationSpecification: AverageCalculationSpecification;
 }
 
 export interface UpdateClassRequest {

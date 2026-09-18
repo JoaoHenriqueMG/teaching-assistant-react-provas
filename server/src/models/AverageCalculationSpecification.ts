@@ -1,4 +1,4 @@
-import { Grade } from './Evaluation';
+import { EVALUATION_GOALS, Grade } from './Evaluation';
 import { DomainError } from './DomainError';
 
 type Goal = string;
@@ -94,11 +94,8 @@ const DEFAULT_GRADE_WEIGHTS = new Map<Grade, number>([
   ['MANA', 0],
 ]);
 
-const DEFAULT_GOAL_WEIGHTS = new Map<Goal, number>([
-  ['Gerência de Configuração', 1],
-  ['Gerência de Projeto', 1],
-  ['Qualidade de Software', 1],
-]);
+// Every evaluation goal has the same weight by default
+const DEFAULT_GOAL_WEIGHTS = new Map<Goal, number>(EVALUATION_GOALS.map(goal => [goal, 1]));
 
 export const DEFAULT_AVERAGE_CALCULATION_SPECIFICATION = new AverageCalculationSpecification(
   DEFAULT_GRADE_WEIGHTS,

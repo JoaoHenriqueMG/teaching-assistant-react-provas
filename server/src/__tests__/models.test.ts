@@ -294,11 +294,16 @@ describe('AverageCalculationSpecification', () => {
     expect(spec.toJSON().goalWeights).toEqual({ Design: 1 });
   });
 
+  test('the default specification covers every evaluation goal, so averages can be computed', () => {
+    const allMA = new Map(EVALUATION_GOALS.map(goal => [goal, 'MA' as const]));
+    expect(DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.calculateAverage(allMA)).toBe(10);
+  });
+
   test('serializes maps as plain objects and reads them back', () => {
     const json = DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON();
     expect(json).toEqual({
       gradeWeights: { MA: 10, MPA: 7, MANA: 0 },
-      goalWeights: { 'Gerência de Configuração': 1, 'Gerência de Projeto': 1, 'Qualidade de Software': 1 }
+      goalWeights: { Requirements: 1, 'Configuration Management': 1, 'Project Management': 1, Design: 1, Tests: 1, Refactoring: 1 }
     });
     expect(AverageCalculationSpecification.fromJSON(json).toJSON()).toEqual(json);
   });

@@ -1,4 +1,4 @@
-import { Class } from '../types/Class';
+import { Class, CreateClassRequest } from '../types/Class';
 import { ReportData } from '../types/Report';
 
 const API_BASE_URL = 'http://localhost:3005';
@@ -20,7 +20,7 @@ class ClassService {
     }
   }
 
-  static async addClass(classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
+  static async addClass(classData: CreateClassRequest): Promise<Class> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes`, {
         method: 'POST',
@@ -42,7 +42,7 @@ class ClassService {
     }
   }
 
-  static async updateClass(classId: string, classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
+  static async updateClass(classId: string, classData: CreateClassRequest): Promise<Class> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}`, {
         method: 'PUT',

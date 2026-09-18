@@ -45,9 +45,7 @@ describe('Class endpoints', () => {
       averageCalculationSpecification: {
         gradeWeights: { MA: 10, MPA: 7, MANA: 0 },
         goalWeights: {
-          'Gerência de Configuração': 1,
-          'Gerência de Projeto': 1,
-          'Qualidade de Software': 1
+          Requirements: 1, 'Configuration Management': 1, 'Project Management': 1, Design: 1, Tests: 1, Refactoring: 1
         }
       },
       enrollments: []

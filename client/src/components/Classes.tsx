@@ -4,7 +4,6 @@ import { Student } from '../types/Student';
 import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
-import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../types/AverageCalculationSpecification';
 
 interface ClassesProps {
   classes: Class[];
@@ -24,8 +23,7 @@ const Classes: React.FC<ClassesProps> = ({
   const [formData, setFormData] = useState<CreateClassRequest>({
     topic: '',
     semester: 1,
-    year: new Date().getFullYear(),
-    averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
+    year: new Date().getFullYear()
   });
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,8 +157,7 @@ const Classes: React.FC<ClassesProps> = ({
       setFormData({
         topic: '',
         semester: 1,
-        year: new Date().getFullYear(),
-        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
+        year: new Date().getFullYear()
       });
     } catch (error) {
       onError((error as Error).message);
@@ -175,8 +172,7 @@ const Classes: React.FC<ClassesProps> = ({
     setFormData({
       topic: classObj.topic,
       semester: classObj.semester,
-      year: classObj.year,
-      averageCalculationSpecification: classObj.averageCalculationSpecification
+      year: classObj.year
     });
   };
 
@@ -186,8 +182,7 @@ const Classes: React.FC<ClassesProps> = ({
     setFormData({
       topic: '',
       semester: 1,
-      year: new Date().getFullYear(),
-      averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION
+      year: new Date().getFullYear()
     });
   };
 
