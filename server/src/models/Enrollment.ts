@@ -44,7 +44,7 @@ export class Enrollment {
   }
 
   // Set media do estudante antes da prova final
-  setMediaPreFinal(mediaPreFinal: number){
+  setMediaPreFinal(mediaPreFinal: number | null){
     this.mediaPreFinal = mediaPreFinal;
   }
 
@@ -54,7 +54,7 @@ export class Enrollment {
   }
 
   // Set média do estudante depois da final
-  setMediaPosFinal(mediaPosFinal: number){
+  setMediaPosFinal(mediaPosFinal: number | null){
     this.mediaPosFinal = mediaPosFinal;
   }
 
@@ -116,8 +116,8 @@ export class Enrollment {
       ? data.evaluations.map((evalData: any) => Evaluation.fromJSON(evalData))
       : [];
     
-    const mediaPreFinal = data.mediaPreFinal ?? 0;
-    const mediaPosFinal = data.mediaPosFinal ?? 0;
+    const mediaPreFinal = data.mediaPreFinal ?? null;
+    const mediaPosFinal = data.mediaPosFinal ?? null;
     const reprovadoPorFalta = data.reprovadoPorFalta ?? false;
     
     return new Enrollment(student, evaluations, mediaPreFinal, mediaPosFinal, reprovadoPorFalta);

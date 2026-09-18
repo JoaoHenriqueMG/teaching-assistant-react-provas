@@ -16,7 +16,10 @@ import { EspecificacaoDoCalculoDaMedia } from '../models/EspecificacaoDoCalculoD
  *   "students": [{ "name", "cpf" (11 digits), "email" }],
  *   "classes": [{
  *     "topic", "semester", "year", "especificacaoDoCalculoDaMedia",
- *     "enrollments": [{ "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }] }]
+ *     "enrollments": [{
+ *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
+ *       "mediaPreFinal", "mediaPosFinal" (numbers or null), "reprovadoPorFalta" (boolean)
+ *     }]
  *   }]
  * }
  *
@@ -42,7 +45,10 @@ export class JsonFileRepository implements AppStateRepository {
           especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
-            evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+            evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+            mediaPreFinal: enrollment.getMediaPreFinal(),
+            mediaPosFinal: enrollment.getMediaPosFinal(),
+            reprovadoPorFalta: enrollment.getReprovadoPorFalta()
           }))
         }))
       };

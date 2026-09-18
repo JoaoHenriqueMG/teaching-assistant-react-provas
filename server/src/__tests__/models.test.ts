@@ -144,6 +144,7 @@ describe('Enrollment', () => {
     );
     expect(rebuilt.getEvaluations().map(e => e.toJSON())).toEqual([{ goal: 'Design', grade: 'MA' }]);
     expect(rebuilt.getMediaPreFinal()).toBe(9);
+    expect(rebuilt.getMediaPosFinal()).toBeNull();
     expect(rebuilt.getReprovadoPorFalta()).toBe(true);
   });
 });

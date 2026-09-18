@@ -29,7 +29,10 @@ describe('JsonFileRepository', () => {
     const ana = students.addStudent(new Student('Ana Lima', '123.456.789-01', 'ana@cin.ufpe.br'));
     students.addStudent(new Student('Bruno Melo', '987.654.321-00', 'bruno@cin.ufpe.br'));
     const se = classes.addClass(new Class('Software Engineering', 1, 2025, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
-    se.addEnrollment(ana).addOrUpdateEvaluation('Design', 'MA');
+    const enrollment = se.addEnrollment(ana);
+    enrollment.addOrUpdateEvaluation('Design', 'MA');
+    enrollment.setMediaPreFinal(8.5);
+    enrollment.setReprovadoPorFalta(true);
     return { students, classes };
   };
 
@@ -54,7 +57,13 @@ describe('JsonFileRepository', () => {
         semester: 1,
         year: 2025,
         especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
-        enrollments: [{ studentCPF: '12345678901', evaluations: [{ goal: 'Design', grade: 'MA' }] }]
+        enrollments: [{
+          studentCPF: '12345678901',
+          evaluations: [{ goal: 'Design', grade: 'MA' }],
+          mediaPreFinal: 8.5,
+          mediaPosFinal: null,
+          reprovadoPorFalta: true
+        }]
       }]
     });
   });
@@ -71,6 +80,9 @@ describe('JsonFileRepository', () => {
     expect(classes.getAllClasses().map(c => c.toJSON())).toEqual(saved.classes.getAllClasses().map(c => c.toJSON()));
     const enrollment = classes.findClassById('Software Engineering-2025-1')!.findEnrollmentByStudentCPF('12345678901')!;
     expect(enrollment.getStudent()).toBe(students.findStudentByCPF('12345678901'));
+    expect(enrollment.getMediaPreFinal()).toBe(8.5);
+    expect(enrollment.getMediaPosFinal()).toBeNull();
+    expect(enrollment.getReprovadoPorFalta()).toBe(true);
   });
 
   test('load reads averages and absence status when the file has them', () => {
