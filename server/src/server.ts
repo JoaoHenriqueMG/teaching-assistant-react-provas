@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
+import { cleanCPF } from './models/CPF';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
@@ -152,11 +153,6 @@ const triggerSave = (): void => {
 if (!isTestMode) {
   loadDataFromFile();
 }
-
-// Helper function to clean CPF
-const cleanCPF = (cpf: string): string => {
-  return cpf.replace(/[.-]/g, '');
-};
 
 // Routes
 

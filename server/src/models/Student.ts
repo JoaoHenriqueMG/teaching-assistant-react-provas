@@ -1,4 +1,4 @@
-import { Evaluation } from './Evaluation';
+import { cleanCPF, formatCPF, isCleanCPFValid } from './CPF';
 
 export class Student {
   constructor(
@@ -6,17 +6,13 @@ export class Student {
     public cpf: string,
     public email: string
   ) {
-    this.cpf = this.cleanCPF(cpf); // Store only clean CPF internally
+    this.cpf = cleanCPF(cpf); // Store only clean CPF internally
     this.validateCPF(this.cpf);
     this.validateEmail(email);
   }
 
-  private cleanCPF(cpf: string): string {
-    return cpf.replace(/[.-]/g, '');
-  }
-
   private validateCPF(cleanCPF: string): void {
-    if (cleanCPF.length !== 11 || !/^\d+$/.test(cleanCPF)) {
+    if (!isCleanCPFValid(cleanCPF)) {
       throw new Error('Invalid CPF format');
     }
   }
@@ -58,7 +54,7 @@ export class Student {
 
   // Format CPF for display (000.000.000-00)
   getFormattedCPF(): string {
-    return this.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    return formatCPF(this.cpf);
   }
 
   // Get CPF (stored clean internally)
