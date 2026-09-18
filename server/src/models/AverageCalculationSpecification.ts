@@ -59,7 +59,14 @@ export class AverageCalculationSpecification {
         };
     }
 
-    // Rebuilds an instance from serialized data
+    /**
+     * Rebuilds an instance from serialized data, accepting the key names and
+     * the map encodings used by previous versions of the system, so that data
+     * files and payloads written by them are not lost.
+     *
+     * Falls back to the default specification when the data carries no
+     * weights at all.
+     */
     static fromJSON(data: any): AverageCalculationSpecification {
         const normalize = (x: any): Map<string, number> => {
             if (!x) return new Map();
@@ -79,12 +86,19 @@ export class AverageCalculationSpecification {
             // fallback
             return new Map();
         };
-    
-        const gradeWeights = normalize(data.gradeWeights);
-        const goalWeights = normalize(data.goalWeights);
-    
+
+        // pesosDosConceitos and pesosDasMetas are the names used before the
+        // identifiers of this class were translated to English
+        const gradeWeights = normalize(data?.gradeWeights ?? data?.pesosDosConceitos);
+        const goalWeights = normalize(data?.goalWeights ?? data?.pesosDasMetas);
+
+        if (goalWeights.size === 0) {
+            return DEFAULT_AVERAGE_CALCULATION_SPECIFICATION;
+        }
+
         return new AverageCalculationSpecification(gradeWeights as Map<any, number>, goalWeights as Map<any, number>);
     }
+
 }
 
 

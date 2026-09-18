@@ -20,6 +20,12 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
  *       "averageBeforeFinalExam", "averageAfterFinalExam" (numbers or null), "failedByAbsence" (boolean)
  *     }]
+ *
+ * Files written before these fields were renamed to English are also read:
+ * especificacaoDoCalculoDaMedia, mediaPreFinal, mediaPosFinal and
+ * reprovadoPorFalta are accepted as the previous names of, respectively,
+ * averageCalculationSpecification, averageBeforeFinalExam,
+ * averageAfterFinalExam and failedByAbsence.
  *   }]
  * }
  *
@@ -103,7 +109,11 @@ export class JsonFileRepository implements AppStateRepository {
           classData.topic,
           classData.semester,
           classData.year,
-          AverageCalculationSpecification.fromJSON(classData.averageCalculationSpecification)
+          // averageCalculationSpecification was named
+          // especificacaoDoCalculoDaMedia in files written by previous versions
+          AverageCalculationSpecification.fromJSON(
+            classData.averageCalculationSpecification ?? classData.especificacaoDoCalculoDaMedia
+          )
         );
         classes.addClass(classObj);
         this.loadEnrollments(classData, classObj, students);
@@ -130,15 +140,19 @@ export class JsonFileRepository implements AppStateRepository {
           enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
         });
       }
-      // Averages and attendance status, when present in the file
-      if (typeof enrollmentData.averageBeforeFinalExam !== 'undefined') {
-        enrollment.setAverageBeforeFinalExam(enrollmentData.averageBeforeFinalExam);
+      // Averages and attendance status, when present in the file. The names
+      // on the right of each ?? are the ones used by previous versions.
+      const averageBeforeFinalExam = enrollmentData.averageBeforeFinalExam ?? enrollmentData.mediaPreFinal;
+      const averageAfterFinalExam = enrollmentData.averageAfterFinalExam ?? enrollmentData.mediaPosFinal;
+      const failedByAbsence = enrollmentData.failedByAbsence ?? enrollmentData.reprovadoPorFalta;
+      if (typeof averageBeforeFinalExam !== 'undefined') {
+        enrollment.setAverageBeforeFinalExam(averageBeforeFinalExam);
       }
-      if (typeof enrollmentData.averageAfterFinalExam !== 'undefined') {
-        enrollment.setAverageAfterFinalExam(enrollmentData.averageAfterFinalExam);
+      if (typeof averageAfterFinalExam !== 'undefined') {
+        enrollment.setAverageAfterFinalExam(averageAfterFinalExam);
       }
-      if (typeof enrollmentData.failedByAbsence !== 'undefined') {
-        enrollment.setFailedByAbsence(Boolean(enrollmentData.failedByAbsence));
+      if (typeof failedByAbsence !== 'undefined') {
+        enrollment.setFailedByAbsence(Boolean(failedByAbsence));
       }
     });
   }
