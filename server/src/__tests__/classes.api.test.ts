@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import request from 'supertest';
 import { Express } from 'express';
 import { newTestApp } from './support/newTestApp';
@@ -145,9 +146,13 @@ describe('Class endpoints', () => {
     await request(app).get(`${classPath('Nope-2025-1')}/report`).expect(404);
   });
 
-  test('POST /api/classes/gradeImport/:classId is not implemented', async () => {
-    const response = await request(app).post('/api/classes/gradeImport/any').expect(501);
+  test('POST /api/classes/gradeImport/:classId is not implemented and stores no upload', async () => {
+    const response = await request(app)
+      .post('/api/classes/gradeImport/any')
+      .attach('file', Buffer.from('a,b\n1,2'), 'grades.csv')
+      .expect(501);
     expect(response.body.error).toBe('Endpoint ainda não implementado.');
+    expect(fs.existsSync('tmp_data')).toBe(false);
   });
 });
 
