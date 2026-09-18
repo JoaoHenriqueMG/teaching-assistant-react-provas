@@ -1,3 +1,9 @@
+// The step definitions are TypeScript, compiled on the fly by ts-node. They
+// must be compiled with tsconfig.test.json: it emits CommonJS, whereas the
+// application's tsconfig.json emits ES modules, whose resolution does not
+// know the .ts extension and so cannot import the project's own modules.
+process.env.TS_NODE_PROJECT = process.env.TS_NODE_PROJECT || 'tsconfig.test.json';
+
 module.exports = {
   default: {
     require: [
