@@ -60,6 +60,13 @@ The server keeps the students and classes in memory and writes them to
 starts. The file in the repository holds example data; delete its content (or
 the file) to start empty.
 
+A file written by a version of the project older than this one is still read
+in full: the fields that were named in Portuguese
+(`especificacaoDoCalculoDaMedia`, `mediaPreFinal`, `mediaPosFinal`,
+`reprovadoPorFalta`) are accepted under those names. The conversion only goes
+that way, though: once this version saves, the file uses the English names,
+and an older version reading it back would not find the classes.
+
 ## Running the tests
 
 ```bash
