@@ -1,6 +1,7 @@
 import { Student } from './Student';
 import { Enrollment } from './Enrollment';
 import { EspecificacaoDoCalculoDaMedia } from './EspecificacaoDoCalculoDaMedia';
+import { DomainError } from './DomainError';
 
 export class Class {
   private topic: string;
@@ -61,7 +62,7 @@ export class Class {
     // Check if student is already enrolled
     const existingEnrollment = this.findEnrollmentByStudentCPF(student.getCPF());
     if (existingEnrollment) {
-      throw new Error('Student is already enrolled in this class');
+      throw new DomainError('Student is already enrolled in this class');
     }
 
     const enrollment = new Enrollment(student);
@@ -111,7 +112,7 @@ export class Class {
       ? data.enrollments.map((enrollmentData: any) => {
           const student = allStudents.find(s => s.getCPF() === enrollmentData.student.cpf);
           if (!student) {
-            throw new Error(`Student with CPF ${enrollmentData.student.cpf} not found`);
+            throw new DomainError(`Student with CPF ${enrollmentData.student.cpf} not found`);
           }
           return Enrollment.fromJSON(enrollmentData, student);
         })

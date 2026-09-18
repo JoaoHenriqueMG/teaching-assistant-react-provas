@@ -1,4 +1,5 @@
 import { Student } from './Student';
+import { DomainError } from './DomainError';
 
 export class StudentSet {
   private students: Student[] = [];
@@ -11,7 +12,7 @@ export class StudentSet {
   addStudent(student: Student): Student {
     // Check if CPF already exists (student.cpf is already clean)
     if (this.findStudentByCPF(student.cpf)) {
-      throw new Error('Student with this CPF already exists');
+      throw new DomainError('Student with this CPF already exists');
     }
 
     this.students.push(student);
@@ -36,7 +37,7 @@ export class StudentSet {
     const existingStudent = this.findStudentByCPF(updatedStudent.cpf);
     
     if (!existingStudent) {
-      throw new Error('Student not found');
+      throw new DomainError('Student not found');
     }
 
     // Update basic fields only - evaluations are now handled through enrollments

@@ -1,5 +1,6 @@
 import { Class } from './Class';
 import { Student } from './Student';
+import { DomainError } from './DomainError';
 
 export class Classes {
   private classes: Class[] = [];
@@ -12,7 +13,7 @@ export class Classes {
   addClass(classObj: Class): Class {
     // Check if class already exists (same topic, year, semester)
     if (this.findClassById(classObj.getClassId())) {
-      throw new Error('Class with same topic, year, and semester already exists');
+      throw new DomainError('Class with same topic, year, and semester already exists');
     }
 
     this.classes.push(classObj);
@@ -36,7 +37,7 @@ export class Classes {
     const existingClass = this.findClassById(updatedClass.getClassId());
     
     if (!existingClass) {
-      throw new Error('Class not found');
+      throw new DomainError('Class not found');
     }
 
     // Update basic fields of the existing class object
@@ -88,12 +89,12 @@ export class Classes {
   updateClassIdentification(classId: string, topic: string, semester: number, year: number): Class {
     const existingClass = this.findClassById(classId);
     if (!existingClass) {
-      throw new Error('Class not found');
+      throw new DomainError('Class not found');
     }
     const newId = new Class(topic, semester, year, existingClass.getEspecificacaoDoCalculoDaMedia()).getClassId();
     const conflictingClass = this.findClassById(newId);
     if (conflictingClass && conflictingClass !== existingClass) {
-      throw new Error('Class with same topic, year, and semester already exists');
+      throw new DomainError('Class with same topic, year, and semester already exists');
     }
     existingClass.setTopic(topic);
     existingClass.setSemester(semester);

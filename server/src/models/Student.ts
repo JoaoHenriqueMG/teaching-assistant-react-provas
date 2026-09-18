@@ -1,4 +1,5 @@
 import { cleanCPF, formatCPF, isCleanCPFValid } from './CPF';
+import { DomainError } from './DomainError';
 
 export class Student {
   constructor(
@@ -13,19 +14,19 @@ export class Student {
 
   private validateCPF(cleanCPF: string): void {
     if (!isCleanCPFValid(cleanCPF)) {
-      throw new Error('Invalid CPF format');
+      throw new DomainError('Invalid CPF format');
     }
   }
 
   private validateEmail(email: string): void {
     // Check for empty or whitespace-only strings
     if (!email || email.trim().length === 0) {
-      throw new Error('Invalid email format');
+      throw new DomainError('Invalid email format');
     }
 
     // Check for any whitespace in the email (including leading/trailing)
     if (email !== email.trim() || /\s/.test(email)) {
-      throw new Error('Invalid email format');
+      throw new DomainError('Invalid email format');
     }
 
     // More comprehensive email validation regex
@@ -37,18 +38,18 @@ export class Student {
     const emailRegex = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/;
     
     if (!emailRegex.test(email)) {
-      throw new Error('Invalid email format');
+      throw new DomainError('Invalid email format');
     }
 
     // Additional checks for edge cases
     if (email.includes('..') || email.includes('@.') || email.includes('.@')) {
-      throw new Error('Invalid email format');
+      throw new DomainError('Invalid email format');
     }
 
     // Check for hyphen at start or end of domain parts
     const domainPart = email.split('@')[1];
     if (domainPart && (domainPart.startsWith('-') || domainPart.includes('.-') || domainPart.includes('-.'))) {
-      throw new Error('Invalid email format');
+      throw new DomainError('Invalid email format');
     }
   }
 

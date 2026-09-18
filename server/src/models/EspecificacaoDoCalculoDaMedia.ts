@@ -1,4 +1,5 @@
 import { Grade } from './Evaluation';
+import { DomainError } from './DomainError';
 
 type Meta = string;
 
@@ -17,7 +18,7 @@ export class EspecificacaoDoCalculoDaMedia {
         this.somaDosPesosDasMetas = Array.from(pesosIniciaisDasMetas).reduce((acc, v) => acc + v[1], 0);
 
         if (this.somaDosPesosDasMetas === 0)
-            throw new Error("A soma dos pesos das metas não pode ser zero.");
+            throw new DomainError("A soma dos pesos das metas não pode ser zero.");
     }
 
     /**
