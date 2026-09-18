@@ -64,6 +64,22 @@ describe('Class endpoints', () => {
     }
   });
 
+  test('POST and PUT /api/classes reject fields of the wrong type', async () => {
+    await createClass();
+    const cases: [object, string][] = [
+      [{ topic: { name: 'X' }, semester: 1, year: 2025 }, 'Topic must be a non-empty string'],
+      [{ topic: '   ', semester: 1, year: 2025 }, 'Topic must be a non-empty string'],
+      [{ topic: 'X', semester: '1', year: 2025 }, 'Semester and year must be integers'],
+      [{ topic: 'X', semester: 1, year: 2025.5 }, 'Semester and year must be integers']
+    ];
+    for (const [body, error] of cases) {
+      const created = await request(app).post('/api/classes').send(body).expect(400);
+      expect(created.body.error).toBe(error);
+      const updated = await request(app).put(classPath(softwareEngineeringId)).send(body).expect(400);
+      expect(updated.body.error).toBe(error);
+    }
+  });
+
   test('POST /api/classes rejects a class with the same topic, year and semester', async () => {
     await createClass();
     const response = await request(app).post('/api/classes').send(softwareEngineering).expect(400);
@@ -189,6 +205,11 @@ describe('Enrollment endpoints', () => {
     expect(noStudent.body.error).toBe('Student not found');
   });
 
+  test('POST /api/classes/:classId/enroll rejects a CPF that is not a string', async () => {
+    const response = await request(app).post(`${classPath(softwareEngineeringId)}/enroll`).send({ studentCPF: 12345678901 }).expect(400);
+    expect(response.body.error).toBe('Student CPF must be a string');
+  });
+
   test('POST /api/classes/:classId/enroll rejects a student already enrolled', async () => {
     await enroll(softwareEngineeringId, student.cpf);
     const response = await request(app).post(`${classPath(softwareEngineeringId)}/enroll`).send({ studentCPF: student.cpf }).expect(400);
@@ -271,6 +292,8 @@ describe('Evaluation endpoints', () => {
   test('PUT .../evaluation validates goal, grade, class and enrollment', async () => {
     const noGoal = await request(app).put(evaluationPath).send({ grade: 'MA' }).expect(400);
     expect(noGoal.body.error).toBe('Goal is required');
+    const badGoal = await request(app).put(evaluationPath).send({ goal: ['Design'], grade: 'MA' }).expect(400);
+    expect(badGoal.body.error).toBe('Goal must be a non-empty string');
     const badGrade = await request(app).put(evaluationPath).send({ goal: 'Design', grade: 'A' }).expect(400);
     expect(badGrade.body.error).toBe('Invalid grade. Must be MANA, MPA, or MA');
     await request(app).put(`${classPath('Nope-2025-1')}/enrollments/${student.cpf}/evaluation`).send({ goal: 'Design', grade: 'MA' }).expect(404);
@@ -300,6 +323,13 @@ describe('Student lookup and removal endpoints', () => {
     expect(list.body).toEqual([]);
     const missing = await request(app).delete(`/api/students/${student.cpf}`).expect(404);
     expect(missing.body.error).toBe('Student not found');
+  });
+
+  test('POST and PUT /api/students reject fields that are not strings', async () => {
+    const created = await request(app).post('/api/students').send({ name: 'X', cpf: 12345678901, email: 'x@x.com' }).expect(400);
+    expect(created.body.error).toBe('Name, CPF, and email must be strings');
+    const updated = await request(app).put(`/api/students/${student.cpf}`).send({ name: ['X'], email: 'x@x.com' }).expect(400);
+    expect(updated.body.error).toBe('Name and email must be strings');
   });
 
   test('PUT /api/students/:cpf answers 400 for an unknown student', async () => {

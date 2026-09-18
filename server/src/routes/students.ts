@@ -3,6 +3,7 @@ import { StudentSet } from '../models/StudentSet';
 import { Student } from '../models/Student';
 import { cleanCPF } from '../models/CPF';
 import { badRequest, notFound } from './HttpError';
+import { isString } from './validation';
 
 /**
  * Routes for registering, listing, updating and removing students.
@@ -25,6 +26,9 @@ export function studentRoutes(students: StudentSet, onStateChanged: () => void):
     if (!name || !cpf || !email) {
       throw badRequest('Name, CPF, and email are required');
     }
+    if (!isString(name) || !isString(cpf) || !isString(email)) {
+      throw badRequest('Name, CPF, and email must be strings');
+    }
     // Create student with basic information only - evaluations handled through enrollments
     const addedStudent = students.addStudent(new Student(name, cpf, email));
     onStateChanged();
@@ -37,6 +41,9 @@ export function studentRoutes(students: StudentSet, onStateChanged: () => void):
     const { name, email } = req.body;
     if (!name || !email) {
       throw badRequest('Name and email are required for update');
+    }
+    if (!isString(name) || !isString(email)) {
+      throw badRequest('Name and email must be strings');
     }
     // Create a Student object for update - evaluations handled through enrollments
     const result = students.updateStudent(new Student(name, cpf, email));

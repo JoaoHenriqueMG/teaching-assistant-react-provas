@@ -6,6 +6,7 @@ import { StudentSet } from '../models/StudentSet';
 import { cleanCPF } from '../models/CPF';
 import { isGrade } from '../models/Evaluation';
 import { badRequest, notFound } from './HttpError';
+import { isNonEmptyString } from './validation';
 
 /**
  * Routes for enrolling students in classes and grading their learning goals.
@@ -39,6 +40,9 @@ export function enrollmentRoutes(classes: Classes, students: StudentSet, onState
     const { studentCPF } = req.body;
     if (!studentCPF) {
       throw badRequest('Student CPF is required');
+    }
+    if (!isNonEmptyString(studentCPF)) {
+      throw badRequest('Student CPF must be a string');
     }
     const classObj = findClass(req.params.classId);
     const student = students.findStudentByCPF(cleanCPF(studentCPF));
@@ -80,6 +84,9 @@ export function enrollmentRoutes(classes: Classes, students: StudentSet, onState
     const { goal, grade } = req.body;
     if (!goal) {
       throw badRequest('Goal is required');
+    }
+    if (!isNonEmptyString(goal)) {
+      throw badRequest('Goal must be a non-empty string');
     }
     const enrollment = findEnrollment(req.params.classId, req.params.studentCPF);
     if (grade === '' || grade === null || grade === undefined) {
