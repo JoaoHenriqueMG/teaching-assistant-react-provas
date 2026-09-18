@@ -34,9 +34,9 @@ export class JsonFileRepository implements AppStateRepository {
     try {
       const data = {
         students: students.getAllStudents().map(student => ({
-          name: student.name,
+          name: student.getName(),
           cpf: student.getCPF(),
-          email: student.email
+          email: student.getEmail()
         })),
         classes: classes.getAllClasses().map(classObj => ({
           topic: classObj.getTopic(),

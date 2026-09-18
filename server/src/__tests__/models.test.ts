@@ -30,7 +30,7 @@ describe('StudentSet', () => {
 
   test('adds students and finds them by clean CPF', () => {
     const added = students.addStudent(ana());
-    expect(added.name).toBe('Ana Lima');
+    expect(added.getName()).toBe('Ana Lima');
     expect(students.getCount()).toBe(1);
     expect(students.findStudentByCPF('12345678901')).toBe(added);
     expect(students.findStudentByCPF('123.456.789-01')).toBeUndefined();
@@ -47,8 +47,8 @@ describe('StudentSet', () => {
     const original = students.addStudent(ana());
     const updated = students.updateStudent(new Student('Ana Souza', '12345678901', 'souza@cin.ufpe.br'));
     expect(updated).toBe(original);
-    expect(original.name).toBe('Ana Souza');
-    expect(original.email).toBe('souza@cin.ufpe.br');
+    expect(original.getName()).toBe('Ana Souza');
+    expect(original.getEmail()).toBe('souza@cin.ufpe.br');
     expect(original.getCPF()).toBe('12345678901');
   });
 
@@ -92,7 +92,7 @@ describe('Enrollment', () => {
   beforeEach(() => { enrollment = new Enrollment(ana()); });
 
   test('starts with no evaluations, null averages and not failed by absence', () => {
-    expect(enrollment.getStudent().name).toBe('Ana Lima');
+    expect(enrollment.getStudent().getName()).toBe('Ana Lima');
     expect(enrollment.getEvaluations()).toEqual([]);
     expect(enrollment.getMediaPreFinal()).toBeNull();
     expect(enrollment.getMediaPosFinal()).toBeNull();
@@ -170,7 +170,7 @@ describe('Class', () => {
     expect(() => softwareEngineering.addEnrollment(ana())).toThrow('Student is already enrolled in this class');
     expect(softwareEngineering.findEnrollmentByStudentCPF('12345678901')).toBe(enrollment);
     expect(softwareEngineering.findEnrollmentByStudentCPF('98765432100')).toBeUndefined();
-    expect(softwareEngineering.getEnrolledStudents().map(s => s.name)).toEqual(['Ana Lima']);
+    expect(softwareEngineering.getEnrolledStudents().map(s => s.getName())).toEqual(['Ana Lima']);
   });
 
   test('removes enrollments by CPF', () => {
@@ -205,7 +205,7 @@ describe('Class', () => {
       enrollments: [{ student: { cpf: '12345678901' }, evaluations: [] }]
     }, [ana(), bruno()]);
     expect(rebuilt.getClassId()).toBe('SE-2024-2');
-    expect(rebuilt.getEnrolledStudents().map(s => s.name)).toEqual(['Ana Lima']);
+    expect(rebuilt.getEnrolledStudents().map(s => s.getName())).toEqual(['Ana Lima']);
     expect(() => Class.fromJSON({
       topic: 'SE', semester: 2, year: 2024, especificacaoDoCalculoDaMedia: {},
       enrollments: [{ student: { cpf: '00000000000' }, evaluations: [] }]
@@ -258,7 +258,7 @@ describe('Classes', () => {
     se.addEnrollment(ana());
     db.addEnrollment(ana());
     db.addEnrollment(bruno());
-    expect(classes.getAllEnrolledStudents().map(s => s.name)).toEqual(['Ana Lima', 'Bruno Melo']);
+    expect(classes.getAllEnrolledStudents().map(s => s.getName())).toEqual(['Ana Lima', 'Bruno Melo']);
   });
 
   test('updateClass copies fields and merges enrollments and evaluations', () => {

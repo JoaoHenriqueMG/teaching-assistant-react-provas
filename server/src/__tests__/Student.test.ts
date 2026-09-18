@@ -5,9 +5,9 @@ describe('Student Class', () => {
     test('should create a student with valid data', () => {
       const student = new Student('João Silva', '123.456.789-01', 'joao@email.com');
       
-      expect(student.name).toBe('João Silva');
+      expect(student.getName()).toBe('João Silva');
       expect(student.getCPF()).toBe('12345678901'); // Should store clean CPF
-      expect(student.email).toBe('joao@email.com');
+      expect(student.getEmail()).toBe('joao@email.com');
     });
 
     test('should clean and store CPF without formatting', () => {

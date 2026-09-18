@@ -10,8 +10,8 @@ export class StudentSet {
 
   // Add a new student
   addStudent(student: Student): Student {
-    // Check if CPF already exists (student.cpf is already clean)
-    if (this.findStudentByCPF(student.cpf)) {
+    // Check if CPF already exists (the student stores a clean CPF)
+    if (this.findStudentByCPF(student.getCPF())) {
       throw new DomainError('Student with this CPF already exists');
     }
 
@@ -21,7 +21,7 @@ export class StudentSet {
 
   // Remove student by CPF (expects clean CPF)
   removeStudent(cpf: string): boolean {
-    const index = this.students.findIndex(s => s.cpf === cpf);
+    const index = this.students.findIndex(s => s.getCPF() === cpf);
     
     if (index === -1) {
       return false;
@@ -33,23 +33,20 @@ export class StudentSet {
 
   // Update student by CPF
   updateStudent(updatedStudent: Student): Student {
-    // updatedStudent.cpf is already clean
-    const existingStudent = this.findStudentByCPF(updatedStudent.cpf);
+    const existingStudent = this.findStudentByCPF(updatedStudent.getCPF());
     
     if (!existingStudent) {
       throw new DomainError('Student not found');
     }
 
-    // Update basic fields only - evaluations are now handled through enrollments
-    existingStudent.name = updatedStudent.name;
-    existingStudent.email = updatedStudent.email;
-    
-    // CPF should not be updated as it's the identifier
-    
+    // Update basic fields only (the CPF is the identifier and never changes)
+    existingStudent.updateWith(updatedStudent);
     return existingStudent;
-  }  // Find student by CPF (expects clean CPF)
+  }
+
+  // Find student by CPF (expects clean CPF)
   findStudentByCPF(cpf: string): Student | undefined {
-    return this.students.find(s => s.cpf === cpf);
+    return this.students.find(s => s.getCPF() === cpf);
   }
 
   // Get all students

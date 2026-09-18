@@ -1,15 +1,35 @@
 import { cleanCPF, formatCPF, isCleanCPFValid } from './CPF';
 import { DomainError } from './DomainError';
 
+/**
+ * A student, identified by CPF. The CPF is stored clean (11 digits) and
+ * never changes; name and email can be updated.
+ */
 export class Student {
-  constructor(
-    public name: string,
-    public cpf: string,
-    public email: string
-  ) {
+  private name: string;
+  private readonly cpf: string;
+  private email: string;
+
+  constructor(name: string, cpf: string, email: string) {
     this.cpf = cleanCPF(cpf); // Store only clean CPF internally
     this.validateCPF(this.cpf);
     this.validateEmail(email);
+    this.name = name;
+    this.email = email;
+  }
+
+  getName(): string {
+    return this.name;
+  }
+
+  getEmail(): string {
+    return this.email;
+  }
+
+  /** Copies the mutable data (name and email) from another student. */
+  updateWith(other: Student): void {
+    this.name = other.name;
+    this.email = other.email;
   }
 
   private validateCPF(cleanCPF: string): void {
