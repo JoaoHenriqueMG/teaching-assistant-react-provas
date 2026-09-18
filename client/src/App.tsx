@@ -3,14 +3,23 @@ import { Student } from './types/Student';
 import { Class } from './types/Class';
 import { studentService } from './services/StudentService';
 import { classService } from './services/ClassService';
-import StudentList from './components/StudentList';
-import StudentForm from './components/StudentForm';
+import StudentsTab from './components/StudentsTab';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
 import './App.css';
 
 type TabType = 'students' | 'evaluations' | 'classes';
 
+const TABS: { type: TabType; label: string }[] = [
+  { type: 'students', label: 'Students' },
+  { type: 'evaluations', label: 'Evaluations' },
+  { type: 'classes', label: 'Classes' }
+];
+
+/**
+ * The application: keeps the students and classes shown by the tabs in sync
+ * with the server, and shows the errors reported by them.
+ */
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
@@ -24,38 +33,27 @@ const App: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const studentsData = await studentService.getAllStudents();
-      setStudents(studentsData);
+      setStudents(await studentService.getAllStudents());
     } catch (err) {
       setError('Failed to load students. Please try again.');
-      console.error('Error loading students:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const loadClasses = useCallback(async () => {
+  const loadClasses = useCallback(async (): Promise<Class[]> => {
     try {
       setError('');
       const classesData = await classService.getAllClasses();
       setClasses(classesData);
+      // Keeps the selected class in sync with its new enrollments
+      setSelectedClass(previous => (previous ? classesData.find(c => c.id === previous.id) || previous : null));
       return classesData;
     } catch (err) {
       setError('Failed to load classes. Please try again.');
-      console.error('Error loading classes:', err);
       return [];
     }
   }, []);
-
-  const updateSelectedClass = useCallback((classesData: Class[]) => {
-    // Update selectedClass if it exists to reflect new enrollments
-    if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => c.id === selectedClass.id);
-      if (updatedSelectedClass) {
-        setSelectedClass(updatedSelectedClass);
-      }
-    }
-  }, [selectedClass]);
 
   // Load students and classes on component mount
   useEffect(() => {
@@ -63,46 +61,20 @@ const App: React.FC = () => {
     loadClasses();
   }, [loadStudents, loadClasses]);
 
-  const handleStudentAdded = async () => {
-    loadStudents(); // Reload the list when a new student is added
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
-  };
-
-  const handleStudentDeleted = async () => {
-    loadStudents(); // Reload the list when a student is deleted
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
+  // A student was added or deleted: both the list and the enrollments changed
+  const handleStudentSetChanged = () => {
+    loadStudents();
+    loadClasses();
   };
 
   const handleStudentUpdated = () => {
     setEditingStudent(null);
-    loadStudents(); // Reload the list when a student is updated
-  };
-
-  const handleClassAdded = () => {
-    loadClasses(); // Reload classes when a new class is added
-  };
-
-  const handleClassUpdated = () => {
-    loadClasses(); // Reload classes when a class is updated
+    loadStudents();
   };
 
   const handleClassDeleted = () => {
-    loadClasses(); // Reload classes when a class is deleted
+    loadClasses();
     setSelectedClass(null); // Clear selection if deleted class was selected
-  };
-
-  const handleEditClick = (student: Student) => {
-    setEditingStudent(student);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingStudent(null);
-  };
-
-  const handleError = (errorMessage: string) => {
-    setError(errorMessage);
   };
 
   return (
@@ -121,86 +93,50 @@ const App: React.FC = () => {
 
         {/* Tab Navigation */}
         <div className="tab-navigation">
-          <button
-            className={`tab-button ${activeTab === 'students' ? 'active' : ''}`}
-            onClick={() => setActiveTab('students')}
-            data-testid="students-tab"
-          >
-            Students
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('evaluations')}
-            data-testid="evaluations-tab"
-          >
-            Evaluations
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('classes')}
-            data-testid="classes-tab"
-          >
-            Classes
-          </button>
+          {TABS.map(({ type, label }) => (
+            <button
+              key={type}
+              className={`tab-button ${activeTab === type ? 'active' : ''}`}
+              onClick={() => setActiveTab(type)}
+              data-testid={`${type}-tab`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Tab Content */}
         <div className="tab-content">
           {activeTab === 'students' && (
-            <>
-              {/* Class Selection */}
-              <div className="class-selection">
-                <label htmlFor="class-select">Filter by Class:</label>
-                <select
-                  id="class-select"
-                  value={selectedClass ? selectedClass.id : ''}
-                  onChange={(e) => {
-                    const classId = e.target.value;
-                    setSelectedClass(classes.find(c => c.id === classId) || null);
-                  }}
-                  className="class-selector"
-                >
-                  <option value="">All Students</option>
-                  {classes.map((classObj) => (
-                    <option key={classObj.id} value={classObj.id}>
-                      {classObj.topic} ({classObj.year}/{classObj.semester})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <StudentForm
-                onStudentAdded={handleStudentAdded}
-                onStudentUpdated={handleStudentUpdated}
-                onError={handleError}
-                onCancel={editingStudent ? handleCancelEdit : undefined}
-                editingStudent={editingStudent}
-                selectedClass={selectedClass}
-              />
-
-              <StudentList
-                students={selectedClass ? selectedClass.enrollments.map(e => e.student) : students}
-                onStudentDeleted={handleStudentDeleted}
-                onEditStudent={handleEditClick}
-                onError={handleError}
-                loading={loading}
-              />
-            </>
+            <StudentsTab
+              students={students}
+              classes={classes}
+              selectedClass={selectedClass}
+              onSelectClass={setSelectedClass}
+              editingStudent={editingStudent}
+              onEditStudent={setEditingStudent}
+              onCancelEdit={() => setEditingStudent(null)}
+              onStudentAdded={handleStudentSetChanged}
+              onStudentUpdated={handleStudentUpdated}
+              onStudentDeleted={handleStudentSetChanged}
+              onError={setError}
+              loading={loading}
+            />
           )}
 
           {activeTab === 'evaluations' && (
-            <Evaluations 
-              onError={handleError}
+            <Evaluations
+              onError={setError}
             />
           )}
 
           {activeTab === 'classes' && (
             <Classes
               classes={classes}
-              onClassAdded={handleClassAdded}
-              onClassUpdated={handleClassUpdated}
+              onClassAdded={loadClasses}
+              onClassUpdated={loadClasses}
               onClassDeleted={handleClassDeleted}
-              onError={handleError}
+              onError={setError}
             />
           )}
         </div>
