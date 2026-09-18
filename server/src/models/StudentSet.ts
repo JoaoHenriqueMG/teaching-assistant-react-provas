@@ -1,6 +1,10 @@
 import { Student } from './Student';
 import { DomainError } from './DomainError';
 
+/**
+ * The registered students, with at most one student per CPF.
+ * Lookups expect a clean CPF (11 digits), as stored by Student.
+ */
 export class StudentSet {
   private students: Student[] = [];
 

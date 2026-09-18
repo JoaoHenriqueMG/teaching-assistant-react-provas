@@ -3,6 +3,11 @@ import { Enrollment } from './Enrollment';
 import { AverageCalculationSpecification } from './AverageCalculationSpecification';
 import { DomainError } from './DomainError';
 
+/**
+ * A class (offering of a course) given in a semester of a year, identified by
+ * 'topic-year-semester', with the enrolled students and the specification
+ * of how their averages are computed. A student is enrolled at most once.
+ */
 export class Class {
   private topic: string;
   private semester: number;

@@ -8,6 +8,7 @@ export function isGrade(value: unknown): value is Grade {
   return (GRADES as readonly unknown[]).includes(value);
 }
 
+/** The grade a student got for one learning goal of a class. */
 export class Evaluation {
   private goal: string;
   private grade: Grade;
@@ -42,7 +43,7 @@ export class Evaluation {
   }
 }
 
-// Predefined evaluation goals
+/** The learning goals graded in every class. */
 export const EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 

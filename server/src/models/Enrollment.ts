@@ -1,6 +1,11 @@
 import { Student } from './Student';
 import { Evaluation, Grade } from './Evaluation';
 
+/**
+ * A student's participation in a class: the grades of the learning goals,
+ * the averages (null until computed) and whether the student failed by
+ * absence. At most one evaluation per goal.
+ */
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];

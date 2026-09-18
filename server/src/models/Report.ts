@@ -41,6 +41,10 @@ export interface IReportGenerator {
   generate(): ReportData;
 }
 
+/**
+ * Statistics report of a class. Placeholder: only the class identification
+ * is filled in; the statistics are not implemented yet.
+ */
 export class Report implements IReportGenerator {
   private classObj: Class;
 

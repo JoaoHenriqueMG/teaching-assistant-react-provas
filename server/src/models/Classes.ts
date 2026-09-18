@@ -2,6 +2,7 @@ import { Class } from './Class';
 import { Student } from './Student';
 import { DomainError } from './DomainError';
 
+/** The registered classes, with at most one class per id (topic, year, semester). */
 export class Classes {
   private classes: Class[] = [];
 
