@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Class } from '../types/Class';
+import { EVALUATION_GOALS, GRADES } from '../types/Evaluation';
 import ClassService from '../services/ClassService';
 import EnrollmentService from '../services/EnrollmentService';
 
@@ -17,16 +18,6 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Predefined evaluation goals
-  const evaluationGoals = [
-    'Requirements',
-    'Configuration Management', 
-    'Project Management',
-    'Design',
-    'Tests',
-    'Refactoring'
-  ];
 
   const loadClasses = useCallback(async () => {
     try {
@@ -155,7 +146,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
               <thead>
                 <tr>
                   <th className="student-name-header">Student</th>
-                  {evaluationGoals.map(goal => (
+                  {EVALUATION_GOALS.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
                 </tr>
@@ -173,7 +164,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   return (
                     <tr key={student.cpf} className="student-row">
                       <td className="student-name-cell">{student.name}</td>
-                      {evaluationGoals.map(goal => {
+                      {EVALUATION_GOALS.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
                         
                         return (
@@ -184,9 +175,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                               className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
                             >
                               <option value="">-</option>
-                              <option value="MANA">MANA</option>
-                              <option value="MPA">MPA</option>
-                              <option value="MA">MA</option>
+                              {GRADES.map(grade => (
+                                <option key={grade} value={grade}>{grade}</option>
+                              ))}
                             </select>
                           </td>
                         );

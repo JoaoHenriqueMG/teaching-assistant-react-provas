@@ -1,5 +1,5 @@
-import { Class } from '../../types/Class';
-import { Student } from '../../types/Student';
+import { Class } from '../types/Class';
+import { Student } from '../types/Student';
 
 export const ana: Student = { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' };
 export const bruno: Student = { name: 'Bruno Melo', cpf: '987.654.321-00', email: 'bruno@cin.ufpe.br' };
