@@ -81,6 +81,26 @@ export class Classes {
     return existingClass;
   }
 
+  /**
+   * Changes the topic, semester and year (and therefore the id) of a
+   * registered class, keeping class ids unique.
+   */
+  updateClassIdentification(classId: string, topic: string, semester: number, year: number): Class {
+    const existingClass = this.findClassById(classId);
+    if (!existingClass) {
+      throw new Error('Class not found');
+    }
+    const newId = new Class(topic, semester, year, existingClass.getEspecificacaoDoCalculoDaMedia()).getClassId();
+    const conflictingClass = this.findClassById(newId);
+    if (conflictingClass && conflictingClass !== existingClass) {
+      throw new Error('Class with same topic, year, and semester already exists');
+    }
+    existingClass.setTopic(topic);
+    existingClass.setSemester(semester);
+    existingClass.setYear(year);
+    return existingClass;
+  }
+
   // Find class by ID
   findClassById(classId: string): Class | undefined {
     return this.classes.find(c => c.getClassId() === classId);

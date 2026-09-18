@@ -82,6 +82,18 @@ describe('Class endpoints', () => {
     expect(list.body.map((c: any) => c.id)).toEqual(['Software Engineering-2026-2']);
   });
 
+  test('PUT /api/classes/:id rejects an identification already used by another class', async () => {
+    await createClass();
+    await createClass({ topic: 'Databases', semester: 2, year: 2024 });
+    const response = await request(app)
+      .put(classPath(softwareEngineeringId))
+      .send({ topic: 'Databases', semester: 2, year: 2024 })
+      .expect(400);
+    expect(response.body.error).toBe('Class with same topic, year, and semester already exists');
+    const list = await request(app).get('/api/classes').expect(200);
+    expect(list.body.map((c: any) => c.id).sort()).toEqual(['Databases-2024-2', softwareEngineeringId]);
+  });
+
   test('PUT /api/classes/:id keeps enrollments', async () => {
     await createStudent();
     await createClass();

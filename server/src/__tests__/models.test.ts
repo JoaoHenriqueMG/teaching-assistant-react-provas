@@ -225,6 +225,19 @@ describe('Classes', () => {
     expect(classes.removeClass('Software Engineering-2025-1')).toBe(false);
   });
 
+  test('updateClassIdentification changes topic, semester and year, keeping ids unique', () => {
+    const se = classes.addClass(newClass());
+    classes.addClass(new Class('Databases', 2, 2024, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    expect(classes.updateClassIdentification('Software Engineering-2025-1', 'SE', 2, 2026)).toBe(se);
+    expect(se.getClassId()).toBe('SE-2026-2');
+    // same identification as itself is allowed
+    classes.updateClassIdentification('SE-2026-2', 'SE', 2, 2026);
+    expect(() => classes.updateClassIdentification('SE-2026-2', 'Databases', 2, 2024))
+      .toThrow('Class with same topic, year, and semester already exists');
+    expect(se.getClassId()).toBe('SE-2026-2');
+    expect(() => classes.updateClassIdentification('Nope-1-1', 'X', 1, 2000)).toThrow('Class not found');
+  });
+
   test('getAllClasses returns a copy', () => {
     classes.addClass(newClass());
     classes.getAllClasses().pop();

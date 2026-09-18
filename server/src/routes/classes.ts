@@ -36,15 +36,12 @@ export function classRoutes(classes: Classes, onStateChanged: () => void): Route
     if (!topic || !semester || !year) {
       throw badRequest('Topic, semester, and year are required');
     }
-    const existingClass = classes.findClassById(req.params.id);
-    if (!existingClass) {
+    if (!classes.findClassById(req.params.id)) {
       throw notFound('Class not found');
     }
-    existingClass.setTopic(topic);
-    existingClass.setSemester(semester);
-    existingClass.setYear(year);
+    const updatedClass = classes.updateClassIdentification(req.params.id, topic, semester, year);
     onStateChanged();
-    res.json(existingClass.toJSON());
+    res.json(updatedClass.toJSON());
   });
 
   // DELETE /api/classes/:id - Delete a class
