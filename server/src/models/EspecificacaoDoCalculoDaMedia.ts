@@ -1,4 +1,5 @@
-export type Grade = 'MANA' | 'MPA' | 'MA';
+import { Grade } from './Evaluation';
+
 type Meta = string;
 
 export class EspecificacaoDoCalculoDaMedia {

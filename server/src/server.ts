@@ -3,7 +3,7 @@ import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
 import { cleanCPF } from './models/CPF';
-import { Evaluation } from './models/Evaluation';
+import { Evaluation, isGrade } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
@@ -474,7 +474,7 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
       enrollment.removeEvaluation(goal);
     } else {
       // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+      if (!isGrade(grade)) {
         return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
       }
       enrollment.addOrUpdateEvaluation(goal, grade);

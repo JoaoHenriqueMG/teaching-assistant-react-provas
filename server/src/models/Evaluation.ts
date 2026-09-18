@@ -1,4 +1,12 @@
-export type Grade = 'MANA' | 'MPA' | 'MA';
+/** The grades a student can get for a learning goal, from worst to best. */
+export const GRADES = ['MANA', 'MPA', 'MA'] as const;
+
+export type Grade = typeof GRADES[number];
+
+/** Type guard: tells whether an arbitrary value is one of the known grades. */
+export function isGrade(value: unknown): value is Grade {
+  return (GRADES as readonly unknown[]).includes(value);
+}
 
 export class Evaluation {
   private goal: string;
