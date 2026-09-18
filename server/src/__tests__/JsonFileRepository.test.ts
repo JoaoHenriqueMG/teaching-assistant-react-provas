@@ -1,0 +1,136 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { JsonFileRepository } from '../persistence/JsonFileRepository';
+import { StudentSet } from '../models/StudentSet';
+import { Classes } from '../models/Classes';
+import { Student } from '../models/Student';
+import { Class } from '../models/Class';
+import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from '../models/EspecificacaoDoCalculoDaMedia';
+
+describe('JsonFileRepository', () => {
+  let directory: string;
+  let filePath: string;
+  let repository: JsonFileRepository;
+
+  beforeEach(() => {
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ta-repo-'));
+    filePath = path.join(directory, 'data', 'app-data.json');
+    repository = new JsonFileRepository(filePath);
+  });
+
+  afterEach(() => {
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  const populatedState = () => {
+    const students = new StudentSet();
+    const classes = new Classes();
+    const ana = students.addStudent(new Student('Ana Lima', '123.456.789-01', 'ana@cin.ufpe.br'));
+    students.addStudent(new Student('Bruno Melo', '987.654.321-00', 'bruno@cin.ufpe.br'));
+    const se = classes.addClass(new Class('Software Engineering', 1, 2025, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    se.addEnrollment(ana).addOrUpdateEvaluation('Design', 'MA');
+    return { students, classes };
+  };
+
+  test('load does nothing when the file does not exist', () => {
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+    expect(students.getCount()).toBe(0);
+    expect(classes.getCount()).toBe(0);
+  });
+
+  test('save creates the data directory and writes the documented format', () => {
+    const { students, classes } = populatedState();
+    repository.save(students, classes);
+    expect(JSON.parse(fs.readFileSync(filePath, 'utf-8'))).toEqual({
+      students: [
+        { name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' },
+        { name: 'Bruno Melo', cpf: '98765432100', email: 'bruno@cin.ufpe.br' }
+      ],
+      classes: [{
+        topic: 'Software Engineering',
+        semester: 1,
+        year: 2025,
+        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+        enrollments: [{ studentCPF: '12345678901', evaluations: [{ goal: 'Design', grade: 'MA' }] }]
+      }]
+    });
+  });
+
+  test('load rebuilds what save wrote', () => {
+    const saved = populatedState();
+    repository.save(saved.students, saved.classes);
+
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+
+    expect(students.getAllStudents().map(s => s.toJSON())).toEqual(saved.students.getAllStudents().map(s => s.toJSON()));
+    expect(classes.getAllClasses().map(c => c.toJSON())).toEqual(saved.classes.getAllClasses().map(c => c.toJSON()));
+    const enrollment = classes.findClassById('Software Engineering-2025-1')!.findEnrollmentByStudentCPF('12345678901')!;
+    expect(enrollment.getStudent()).toBe(students.findStudentByCPF('12345678901'));
+  });
+
+  test('load reads averages and absence status when the file has them', () => {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [{ name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' }],
+      classes: [{
+        topic: 'SE', semester: 1, year: 2025,
+        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+        enrollments: [{ studentCPF: '12345678901', evaluations: [], mediaPreFinal: 7, mediaPosFinal: 8, reprovadoPorFalta: true }]
+      }]
+    }));
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+    const enrollment = classes.findClassById('SE-2025-1')!.getEnrollments()[0];
+    expect(enrollment.getMediaPreFinal()).toBe(7);
+    expect(enrollment.getMediaPosFinal()).toBe(8);
+    expect(enrollment.getReprovadoPorFalta()).toBe(true);
+  });
+
+  test('load skips invalid records and enrollments of unknown students', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [
+        { name: 'Bad', cpf: '123', email: 'bad@x.com' },
+        { name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' }
+      ],
+      classes: [{
+        topic: 'SE', semester: 1, year: 2025,
+        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON(),
+        enrollments: [{ studentCPF: '00000000000', evaluations: [] }, { studentCPF: '12345678901', evaluations: [] }]
+      }]
+    }));
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+    expect(students.getCount()).toBe(1);
+    expect(classes.findClassById('SE-2025-1')!.getEnrollments()).toHaveLength(1);
+    expect(consoleError).toHaveBeenCalledTimes(2);
+    consoleError.mockRestore();
+  });
+
+  test('load tolerates a corrupt file', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, '{ not json');
+    const students = new StudentSet();
+    repository.load(students, new Classes());
+    expect(students.getCount()).toBe(0);
+    expect(consoleError).toHaveBeenCalledTimes(1);
+    consoleError.mockRestore();
+  });
+
+  test('the committed sample data file is loadable', () => {
+    const students = new StudentSet();
+    const classes = new Classes();
+    new JsonFileRepository(path.resolve(__dirname, '../../data/app-data.json')).load(students, classes);
+    expect(students.getCount()).toBeGreaterThan(0);
+    expect(classes.getCount()).toBeGreaterThan(0);
+  });
+});
