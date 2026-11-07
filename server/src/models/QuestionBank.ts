@@ -25,7 +25,7 @@ export class QuestionBank {
         return [...this.questions];
     }
 
-    findQuestionById(code: string): Question | undefined {
+    findQuestionByCode(code: string): Question | undefined {
         return this.questions.find(question => question.code === code);   
     }
 

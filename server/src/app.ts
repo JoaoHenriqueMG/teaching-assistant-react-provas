@@ -9,12 +9,15 @@ import { enrollmentRoutes } from './routes/enrollments';
 import { reportRoutes } from './routes/reports';
 import { gradeImportRoutes } from './routes/gradeImport';
 import { errorHandler } from './routes/HttpError';
+import { QuestionBank } from './models/QuestionBank';
+import { questionRoutes } from './routes/questions';
 
 /** Everything the HTTP application needs, injected by the composition root. */
 export interface AppDependencies {
   students: StudentSet;
   classes: Classes;
   repository: AppStateRepository;
+  questionBank: QuestionBank;
 }
 
 /**
@@ -25,7 +28,7 @@ export interface AppDependencies {
  * Persistence is deferred (setImmediate) so that responses are not delayed
  * by disk access.
  */
-export function createApp({ students, classes, repository }: AppDependencies): Express {
+export function createApp({ students, classes, repository, questionBank }: AppDependencies): Express {
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -39,6 +42,7 @@ export function createApp({ students, classes, repository }: AppDependencies): E
   app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
   app.use('/api/classes', reportRoutes(classes));
   app.use('/api/classes', gradeImportRoutes());
+  app.use('/api/questions', questionRoutes(questionBank));
   app.use(errorHandler);
 
   return app;
