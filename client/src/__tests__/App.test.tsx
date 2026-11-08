@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { studentService } from '../services/StudentService';
 import { classService } from '../services/ClassService';
+import { questionService } from '../services/QuestionService';
 import { ana, bruno, softwareEngineering, databases } from '../test-support/fixtures';
 
 jest.mock('../services/StudentService', () => ({
@@ -14,16 +15,33 @@ jest.mock('../services/ClassService', () => ({
 jest.mock('../services/EnrollmentService', () => ({
   enrollmentService: { enrollStudent: jest.fn(), updateEvaluation: jest.fn() }
 }));
+jest.mock('../services/QuestionService', () => ({
+  questionService: { getAllQuestions: jest.fn(), createQuestion: jest.fn() }
+}));
 
 const getAllStudents = studentService.getAllStudents as jest.Mock;
 const getAllClasses = classService.getAllClasses as jest.Mock;
+const getAllQuestions = questionService.getAllQuestions as jest.Mock;
 
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getAllStudents.mockResolvedValue([ana, bruno]);
     getAllClasses.mockResolvedValue([softwareEngineering, databases]);
+    getAllQuestions.mockResolvedValue([]);
   });
+
+  
+  test('exibe criação de questões dentro da aba Provas', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByTestId('exams-tab'));
+    expect(screen.getByRole('heading', { name: 'Provas' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Criar questão' })).toBeInTheDocument();
+    expect(await screen.findByText('Nenhuma questão cadastrada.')).toBeInTheDocument();
+    expect(screen.queryByTestId('questions-tab')).not.toBeInTheDocument();
+  });
+
 
   test('shows the header, the three tabs and the Students tab by default', async () => {
     render(<App />);

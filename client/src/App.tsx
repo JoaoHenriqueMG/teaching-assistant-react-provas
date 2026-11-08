@@ -6,14 +6,16 @@ import { classService } from './services/ClassService';
 import StudentsTab from './components/StudentsTab';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import ProvasTab from './components/ProvasTab';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'exams';
 
 const TABS: { type: TabType; label: string }[] = [
   { type: 'students', label: 'Students' },
   { type: 'evaluations', label: 'Evaluations' },
-  { type: 'classes', label: 'Classes' }
+  { type: 'classes', label: 'Classes' },
+  { type: 'exams', label: 'Exams'}
 ];
 
 /**
@@ -138,6 +140,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={setError}
             />
+          )}
+
+          {activeTab === 'exams' && (
+            <ProvasTab />
           )}
         </div>
       </main>
