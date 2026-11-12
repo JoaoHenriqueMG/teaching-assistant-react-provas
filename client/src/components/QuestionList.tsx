@@ -33,7 +33,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                 {question.alternatives.map((alternative, index) => (
                                     <li key={index}>
                                         {alternative.text} -{' '} 
-                                        {alternative.isTrue ? 'Verdeira' : 'Falsa'}
+                                        {alternative.isTrue ? 'Verdadeira' : 'Falsa'}
                                     </li>
                                 ))}
                             </ul>
