@@ -26,6 +26,7 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
+      "gradeType": "concept",
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -123,6 +124,7 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
+      "gradeType": "concept",
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,

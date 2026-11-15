@@ -1,4 +1,4 @@
-import { Class } from './Class';
+import { Class, GRADE_TYPE } from './Class';
 import { Student } from './Student';
 import { DomainError } from './DomainError';
 
@@ -45,6 +45,7 @@ export class Classes {
     existingClass.setTopic(updatedClass.getTopic());
     existingClass.setSemester(updatedClass.getSemester());
     existingClass.setYear(updatedClass.getYear());
+    existingClass.setGradeType(updatedClass.getGradeType());
     
     // Update enrollments: merge existing with updated enrollments
     const updatedEnrollments = updatedClass.getEnrollments();
@@ -92,7 +93,7 @@ export class Classes {
     if (!existingClass) {
       throw new DomainError('Class not found');
     }
-    const newId = new Class(topic, semester, year, existingClass.getAverageCalculationSpecification()).getClassId();
+    const newId = new Class(topic, semester, year, existingClass.getGradeType(), existingClass.getAverageCalculationSpecification()).getClassId();
     const conflictingClass = this.findClassById(newId);
     if (conflictingClass && conflictingClass !== existingClass) {
       throw new DomainError('Class with same topic, year, and semester already exists');
