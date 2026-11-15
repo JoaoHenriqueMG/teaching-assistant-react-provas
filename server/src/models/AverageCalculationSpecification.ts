@@ -47,6 +47,23 @@ export class AverageCalculationSpecification {
         return total / this.goalWeightsSum;
     }
 
+    calculateNumericAvarage(gradesByGoal: Map<Goal, Grade>): number
+    {
+        let total = 0;
+
+        for (const [goal, grade] of gradesByGoal.entries())
+        {
+            if (typeof grade !== 'number') {
+                throw new DomainError(`Expected a numeric grade for goal ${goal}, but got ${grade}`);
+            }
+            
+            const goalWeight = this.goalWeights.get(goal)!;
+            total += goalWeight * grade;
+        }
+
+        return total / this. goalWeightsSum
+    }
+
     // Exports the data in a serializable format
     toJSON() 
     {
