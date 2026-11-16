@@ -9,7 +9,7 @@ import { DomainError } from './DomainError';
  * of how their averages are computed. A student is enrolled at most once.
  */
 
-export const GRADE_TYPE = ['concept', 'numerical'] as const;
+export const GRADE_TYPE = ['concept', 'numeric'] as const;
 export type GradeType = typeof GRADE_TYPE[number];
 
 export class Class {
@@ -120,6 +120,7 @@ export class Class {
       topic: this.topic,
       semester: this.semester,
       year: this.year,
+      gradeType: this.gradeType,
       averageCalculationSpecification: this.averageCalculationSpecification.toJSON(),
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
     };

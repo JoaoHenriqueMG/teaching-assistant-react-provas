@@ -48,6 +48,7 @@ export class JsonFileRepository implements AppStateRepository {
           topic: classObj.getTopic(),
           semester: classObj.getSemester(),
           year: classObj.getYear(),
+          gradeType: classObj.getGradeType(),
           averageCalculationSpecification: classObj.getAverageCalculationSpecification().toJSON(),
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
@@ -109,6 +110,7 @@ export class JsonFileRepository implements AppStateRepository {
           classData.topic,
           classData.semester,
           classData.year,
+          classData.gradeType,
           // averageCalculationSpecification was named
           // especificacaoDoCalculoDaMedia in files written by previous versions
           AverageCalculationSpecification.fromJSON(

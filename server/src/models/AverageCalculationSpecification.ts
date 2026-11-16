@@ -39,6 +39,9 @@ export class AverageCalculationSpecification {
 
         for (const [goal, grade] of gradesByGoal.entries()) 
         {
+            if (typeof grade === 'number') {
+                throw new DomainError(`Expected a concept grade for goal ${goal}, but got ${grade}`);
+            }
             const gradeWeight = this.gradeWeights.get(grade)!;
             const goalWeight = this.goalWeights.get(goal)!;
             total += goalWeight * gradeWeight;
@@ -47,7 +50,7 @@ export class AverageCalculationSpecification {
         return total / this.goalWeightsSum;
     }
 
-    calculateNumericAvarage(gradesByGoal: Map<Goal, Grade>): number
+    calculateNumericAverage(gradesByGoal: Map<Goal, Grade>): number
     {
         let total = 0;
 

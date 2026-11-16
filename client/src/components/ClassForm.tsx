@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Class, CreateClassRequest } from '../types/Class';
+import { Class, CreateClassRequest, GradeType } from '../types/Class';
 import { classService } from '../services/ClassService';
 
 interface ClassFormProps {
@@ -13,10 +13,14 @@ interface ClassFormProps {
 const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
-const emptyForm = (): CreateClassRequest => ({ topic: '', semester: 1, year: currentYear });
+const emptyForm = (): CreateClassRequest => ({
+  topic: '', semester: 1, year: currentYear, gradeType: 'concept'
+});
 
 const formFor = (classObj: Class | null): CreateClassRequest =>
-  classObj ? { topic: classObj.topic, semester: classObj.semester, year: classObj.year } : emptyForm();
+  classObj
+    ? { topic: classObj.topic, semester: classObj.semester, year: classObj.year, gradeType: classObj.gradeType }
+    : emptyForm();
 
 /** Form to add a class or to edit the identification of an existing one. */
 const ClassForm: React.FC<ClassFormProps> = ({ editingClass, onClassAdded, onClassUpdated, onCancelEdit, onError }) => {
@@ -94,6 +98,23 @@ const ClassForm: React.FC<ClassFormProps> = ({ editingClass, onClassAdded, onCla
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>
+          </div>
+
+          <div className="form-row grade-type-row">
+            <div className="form-group">
+              <label htmlFor="gradeType">Grade type:</label>
+              <select
+                id="gradeType"
+                name="gradeType"
+                value={formData.gradeType}
+                onChange={handleInputChange}
+                disabled={!!editingClass}
+                required
+              >
+                <option value="concept">Concepts</option>
+                <option value="numeric">Numeric </option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">

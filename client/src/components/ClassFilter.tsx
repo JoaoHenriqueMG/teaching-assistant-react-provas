@@ -20,7 +20,7 @@ const ClassFilter: React.FC<ClassFilterProps> = ({ classes, selectedClass, onSel
       <option value="">All Students</option>
       {classes.map((classObj) => (
         <option key={classObj.id} value={classObj.id}>
-          {classObj.topic} ({classObj.year}/{classObj.semester})
+          {classObj.topic} ({classObj.year}/{classObj.semester}/{classObj.gradeType})
         </option>
       ))}
     </select>

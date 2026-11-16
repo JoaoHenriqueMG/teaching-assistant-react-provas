@@ -1,7 +1,9 @@
+import { GradeType } from "./Class";
+
 export interface EvaluationPerformance {
   goal: string;
   averageGrade: number;
-  gradeDistribution: {
+  gradeDistribution?: {
     MANA: number;
     MPA: number;
     MA: number;
@@ -28,6 +30,7 @@ export interface ReportData {
   topic: string;
   semester: number;
   year: number;
+  gradeType: GradeType;
   totalEnrolled: number;
   studentsAverage: number;
   approvedCount: number;

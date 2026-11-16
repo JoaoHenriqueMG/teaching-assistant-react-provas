@@ -9,6 +9,7 @@ export const softwareEngineering: Class = {
   topic: 'Software Engineering',
   semester: 1,
   year: 2025,
+  gradeType: 'concept',
   averageCalculationSpecification: { gradeWeights: { MA: 10, MPA: 7, MANA: 0 }, goalWeights: { Design: 1 } },
   enrollments: [{ student: ana, evaluations: [{ goal: 'Design', grade: 'MPA' }] }]
 };
@@ -19,5 +20,6 @@ export const databases: Class = {
   topic: 'Databases',
   semester: 2,
   year: 2024,
+  gradeType: 'concept',
   enrollments: []
 };

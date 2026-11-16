@@ -26,7 +26,6 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
-      "gradeType": "concept",
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -48,7 +47,7 @@
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MPA"
+              "grade": "MANA"
             },
             {
               "goal": "Configuration Management",
@@ -70,7 +69,10 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
         },
         {
           "studentCPF": "55555555555",
@@ -99,7 +101,10 @@
               "goal": "Tests",
               "grade": "MPA"
             }
-          ]
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
         },
         {
           "studentCPF": "22222222222",
@@ -116,7 +121,10 @@
               "goal": "Project Management",
               "grade": "MPA"
             }
-          ]
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
         }
       ]
     },
@@ -124,7 +132,6 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
-      "gradeType": "concept",
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -168,7 +175,10 @@
               "goal": "Tests",
               "grade": "MA"
             }
-          ]
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
         },
         {
           "studentCPF": "33333333333",
@@ -197,7 +207,57 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        }
+      ]
+    },
+    {
+      "topic": "numeric_test",
+      "semester": 1,
+      "year": 2026,
+      "gradeType": "numeric",
+      "averageCalculationSpecification": {
+        "gradeWeights": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "goalWeights": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "33333333333",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": 3.5
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
+            {
+              "goal": "Configuration Management",
+              "grade": 4.5
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
         }
       ]
     }

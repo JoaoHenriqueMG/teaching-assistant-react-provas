@@ -3,12 +3,15 @@ import { Class } from '../types/Class';
 import { EVALUATION_GOALS, GRADES } from '../types/Evaluation';
 import { classService } from '../services/ClassService';
 import { enrollmentService } from '../services/EnrollmentService';
+import NumericGradeInput from './NumericGradeInput';
 
 import { ImportGradeComponent } from './ImportGrade';
 
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
 }
+
+
 
 const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -18,12 +21,14 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const loadClasses = useCallback(async () => {
     try {
       setIsLoading(true);
       const classesData = await classService.getAllClasses();
       setClasses(classesData);
+      setHasLoaded(true);
     } catch (error) {
       onError(`Failed to load classes: ${(error as Error).message}`);
     } finally {
@@ -56,7 +61,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   };
 
-  const handleEvaluationChange = async (studentCPF: string, goal: string, grade: string) => {
+  const handleEvaluationChange = async (studentCPF: string, goal: string, grade: string | number) => {
     if (!selectedClass) {
       onError('No class selected');
       return;
@@ -71,13 +76,11 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !hasLoaded) {
     return (
       <div className="evaluation-section">
         <h3>Evaluations</h3>
-        <div className="evaluation-loading">
-          Loading classes...
-        </div>
+        <div className="evaluation-loading">Loading classes...</div>
       </div>
     );
   }
@@ -142,10 +145,12 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   const student = enrollment.student;
                   
                   // Create a map of evaluations for quick lookup
+                  const isNumeric = selectedClass.gradeType === 'numeric';
+
                   const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
-                    acc[evaluation.goal] = evaluation.grade;
+                    acc[evaluation.goal] = String(evaluation.grade);
                     return acc;
-                  }, {} as {[goal: string]: string});
+                  }, {} as { [goal: string]: string });
 
                   return (
                     <tr key={student.cpf} className="student-row">
@@ -155,16 +160,28 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                         
                         return (
                           <td key={goal} className="evaluation-cell">
-                            <select
-                              value={currentGrade}
-                              onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
-                              className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
-                            >
-                              <option value="">-</option>
-                              {GRADES.map(grade => (
-                                <option key={grade} value={grade}>{grade}</option>
-                              ))}
-                            </select>
+                            <td key={goal} className="evaluation-cell">
+                              {isNumeric ? (
+                                <NumericGradeInput
+                                  value={currentGrade}
+                                  onCommit={(v) =>
+                                    handleEvaluationChange(student.cpf, goal, v === '' ? '' : Number(v))
+                                  }
+                                  onError={onError}
+                                />
+                              ) : (
+                                <select
+                                  value={currentGrade}
+                                  onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
+                                  className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
+                                >
+                                  <option value="">-</option>
+                                  {GRADES.map(grade => (
+                                    <option key={grade} value={grade}>{grade}</option>
+                                  ))}
+                                </select>
+                              )}
+                            </td>
                           </td>
                         );
                       })}

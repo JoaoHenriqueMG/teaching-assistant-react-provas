@@ -1,4 +1,4 @@
-import { Class, GRADE_TYPE } from './Class';
+import { Class, GRADE_TYPE, GradeType } from './Class';
 import { Student } from './Student';
 import { DomainError } from './DomainError';
 
@@ -88,7 +88,7 @@ export class Classes {
    * Changes the topic, semester and year (and therefore the id) of a
    * registered class, keeping class ids unique.
    */
-  updateClassIdentification(classId: string, topic: string, semester: number, year: number): Class {
+  updateClassIdentification(classId: string, topic: string, semester: number, year: number, gradeType: GradeType): Class {
     const existingClass = this.findClassById(classId);
     if (!existingClass) {
       throw new DomainError('Class not found');
@@ -101,6 +101,7 @@ export class Classes {
     existingClass.setTopic(topic);
     existingClass.setSemester(semester);
     existingClass.setYear(year);
+    existingClass.setGradeType(gradeType);
     return existingClass;
   }
 
