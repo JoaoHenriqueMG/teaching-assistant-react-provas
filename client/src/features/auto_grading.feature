@@ -1,7 +1,7 @@
 Feature: Correção automática e atualização de notas de cada aluno
-As a Usuário
-I Want poder corrigir automaticamente todas as provas da turma com gabarito cadastrado
-So that todas as notas possam ser entregues de forma eficiente e segura
+As a Professor
+I Want enviar os gabaritos e as respostas dos alunos
+So that corrigir automaticamente as provas e disponibilizar as notas dos alunos
 
 # Regras de negócio adotadas nestes cenários:
 # - Cada questão tem n alternativas, valendo 1, 2, 4, 8, ... (potências de 2). A resposta é a soma das alternativas marcadas.
@@ -19,10 +19,14 @@ Background:
 @gui
 Scenario: Professor corrige as notas de uma turma com gabarito cadastrado
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+        | 02    | 9,15,3    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,3,15    |
+        | Maria | 02    | 9,15,3    |
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com a formatação correta
     And solicitar a correção automática
@@ -48,7 +52,9 @@ Scenario Outline: Professor tenta corrigir notas com planilha de gabarito malfor
 @gui
 Scenario Outline: Professor tenta corrigir as notas de uma turma com a planilha de respostas possuindo formatação errada
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com o "<problema>"
     And solicitar a correção automática
@@ -80,10 +86,14 @@ Scenario Outline: Professor tenta corrigir sem enviar todas as planilhas necess�
 @gui
 Scenario: Professor corrige notas de uma turma e um aluno preenche uma resposta inválida
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "B" e "40"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+        | 02    | 9,15,3    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,B,40    |
+        | Maria | 02    | 9,15,3    |
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com a formatação correta
     And solicitar a correção automática
@@ -96,8 +106,12 @@ Scenario: Professor corrige notas de uma turma e um aluno preenche uma resposta 
 @gui
 Scenario: Professor corrige notas e um aluno entrega a prova em branco
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And a aluna "Ana" entregou a "prova 01" com todas as questões em branco
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas                     |
+        | Ana   | 01    | (branco),(branco),(branco)    |
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com a formatação correta
     And solicitar a correção automática
@@ -107,8 +121,12 @@ Scenario: Professor corrige notas e um aluno entrega a prova em branco
 @gui
 Scenario: Professor corrige notas e a planilha contém um aluno que não pertence à turma
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,3,15    |
     And a planilha de respostas contém um aluno com identificador que não pertence à turma
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com a formatação correta
@@ -120,18 +138,22 @@ Scenario: Professor corrige notas e a planilha contém um aluno que não pertenc
 @gui
 Scenario: Professor corrige novamente uma turma que já possui notas
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o aluno "Pedro" já possui nota 40% na "prova 01"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
+    And o aluno "Pedro" já possui nota 40% na prova "01"
+    And os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+        | 02    | 9,15,3    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,3,15    |
+        | Maria | 02    | 9,15,3    |
     When eu enviar a planilha com os gabaritos com a formatação correta
     And eu enviar a planilha de respostas com a formatação correta
     And solicitar a correção automática
     Then aparecerá uma mensagem informando que as notas foram cadastradas
     And eu verei "Maria" no rank #1 com a nota 100%
     And eu verei "Pedro" no rank #2 com a nota 87%
-    And o aluno "Pedro" não terá mais de uma nota para a "prova 01"
+    And o aluno "Pedro" não terá mais de uma nota para a prova "01"
 
 @service
 Scenario Outline: Serviço calcula a nota do aluno a partir do gabarito e das respostas marcadas
@@ -199,8 +221,12 @@ Scenario Outline: Serviço trata respostas inválidas ou em branco como erro na 
 
 @service
 Scenario Outline: Serviço arredonda a nota para um número inteiro
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<respostas>"
+    Given os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas   |
+        | Pedro | 01    | <respostas> |
     When eu chamar o serviço de correção automática
     Then o serviço retornará a nota do aluno "Pedro" como "<nota>"
 
@@ -213,17 +239,26 @@ Scenario Outline: Serviço arredonda a nota para um número inteiro
 
 @service
 Scenario: Serviço tenta corrigir prova que não existe no gabarito
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And apenas existem as provas "01", "02", "03" no gabarito
-    And o aluno "Pedro" marcou a prova "05" com as respostas "3, 9, 15"
+    Given os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+        | 02    | 9,15,3    |
+        | 03    | 15,9,15   |                
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 05    | 3,9,15    |
     When eu chamar o serviço de correção automática
     Then o serviço retornará erro de prova inexistente no gabarito
     And nenhuma nota será cadastrada
 
 @service
 Scenario Outline: Serviço tenta corrigir com número de respostas diferente do número de questões (colunas na planilha)
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<respostas>"
+    Given os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas   |
+        | Pedro | 01    | <respostas> |
     When eu chamar o serviço de correção automática
     Then o serviço retornará erro de quantidade de respostas incompatível com o gabarito
     And nenhuma nota será cadastrada
@@ -235,17 +270,25 @@ Scenario Outline: Serviço tenta corrigir com número de respostas diferente do 
 
 @service
 Scenario: Serviço tenta corrigir com gabarito sem questões
-    Given que o gabarito da prova "01" não possui nenhuma questão
-    And o aluno "Pedro" marcou a prova "01" sem respostas
+    Given os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    |           |
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,9,15    |
     When eu chamar o serviço de correção automática
     Then o serviço retornará erro de gabarito inválido
     And nenhuma nota será cadastrada
 
 @service
 Scenario: Serviço sobrescreve a nota existente ao corrigir novamente
-    Given que o gabarito da prova "01" é "3, 9, 15"
+    Given os seguintes gabaritos foram enviados:
+        | prova | respostas |
+        | 01    | 3,9,15    |
     And o aluno "Pedro" já possui nota "40%" na prova "01"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "3, 3, 15"
+    And os seguintes alunos responderam às provas:
+        | aluno | prova | respostas |
+        | Pedro | 01    | 3,3,15    |
     When eu chamar o serviço de correção automática
     Then o serviço retornará a nota do aluno "Pedro" como "87%"
     And o aluno "Pedro" terá apenas uma nota para a prova "01"
