@@ -14,3 +14,8 @@ export const isInteger = (value: unknown): value is number => Number.isInteger(v
 
 export const isGradeType = (value: unknown): value is GradeType => 
   typeof value === 'string' && (GRADE_TYPE as readonly string[]).includes(value);
+
+export const isNonEmptyStringList = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every(isNonEmptyString);

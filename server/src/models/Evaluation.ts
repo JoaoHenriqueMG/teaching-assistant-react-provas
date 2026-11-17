@@ -55,8 +55,8 @@ export class Evaluation {
   }
 }
 
-/** The learning goals graded in every class. */
-export const EVALUATION_GOALS = [
+/** The default learning goals */
+export const DEFAULT_EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 
   'Project Management',

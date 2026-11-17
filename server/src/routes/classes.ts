@@ -3,7 +3,7 @@ import { Classes } from '../models/Classes';
 import { Class, GRADE_TYPE, GradeType } from '../models/Class';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 import { badRequest, notFound } from './HttpError';
-import { isInteger, isNonEmptyString, isGradeType } from './validation';
+import { isInteger, isNonEmptyString, isGradeType, isNonEmptyStringList } from './validation';
 
 /**
  * Routes for creating, listing, updating and removing classes.
@@ -17,12 +17,13 @@ interface ClassFields {
   semester: number;
   year: number;
   gradeType: GradeType;
+  goals: string[];
 }
 
 /** Checks that a request body carries the fields that identify a class. */
 function requireClassFields(body: any): ClassFields {
-  const { topic, semester, year, gradeType } = body;
-  if (!topic || !semester || !year) {
+  const { topic, semester, year, gradeType, goals } = body;
+  if (!topic || !semester || !year || !gradeType || !goals) {
     throw badRequest('Topic, semester, and year are required');
   }
   if (!isNonEmptyString(topic)) {
@@ -34,7 +35,10 @@ function requireClassFields(body: any): ClassFields {
   if (!isGradeType(gradeType)) {
     throw badRequest('');
   }
-  return { topic, semester, year, gradeType };
+  if (!isNonEmptyStringList(goals)) {
+    throw badRequest('Goals must be a non-empty string list');
+  }
+  return { topic, semester, year, gradeType, goals };
 }
 
 export function classRoutes(classes: Classes, onStateChanged: () => void): Router {
@@ -47,19 +51,19 @@ export function classRoutes(classes: Classes, onStateChanged: () => void): Route
 
   // POST /api/classes - Add a new class
   router.post('/', (req, res) => {
-    const { topic, semester, year, gradeType } = requireClassFields(req.body);
-    const newClass = classes.addClass(new Class(topic, semester, year, gradeType, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
+    const { topic, semester, year, gradeType, goals } = requireClassFields(req.body);
+    const newClass = classes.addClass(new Class(topic, semester, year, gradeType, goals, DEFAULT_AVERAGE_CALCULATION_SPECIFICATION));
     onStateChanged();
     res.status(201).json(newClass.toJSON());
   });
 
   // PUT /api/classes/:id - Update a class
   router.put('/:id', (req, res) => {
-    const { topic, semester, year, gradeType } = requireClassFields(req.body);
+    const { topic, semester, year, gradeType, goals } = requireClassFields(req.body);
     if (!classes.findClassById(req.params.id)) {
       throw notFound('Class not found');
     }
-    const updatedClass = classes.updateClassIdentification(req.params.id, topic, semester, year, gradeType);
+    const updatedClass = classes.updateClassIdentification(req.params.id, topic, semester, year, gradeType, goals);
     onStateChanged();
     res.json(updatedClass.toJSON());
   });

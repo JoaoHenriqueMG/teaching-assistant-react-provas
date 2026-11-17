@@ -7,6 +7,7 @@ import { Student } from '../models/Student';
 import { Class } from '../models/Class';
 import { Evaluation } from '../models/Evaluation';
 import { AverageCalculationSpecification } from '../models/AverageCalculationSpecification';
+import { callbackify } from 'util';
 
 /**
  * Keeps the application state in a single JSON file.
@@ -49,6 +50,7 @@ export class JsonFileRepository implements AppStateRepository {
           semester: classObj.getSemester(),
           year: classObj.getYear(),
           gradeType: classObj.getGradeType(),
+          goals: classObj.getGoals(),
           averageCalculationSpecification: classObj.getAverageCalculationSpecification().toJSON(),
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
@@ -111,6 +113,7 @@ export class JsonFileRepository implements AppStateRepository {
           classData.semester,
           classData.year,
           classData.gradeType,
+          classData.goals,
           // averageCalculationSpecification was named
           // especificacaoDoCalculoDaMedia in files written by previous versions
           AverageCalculationSpecification.fromJSON(
