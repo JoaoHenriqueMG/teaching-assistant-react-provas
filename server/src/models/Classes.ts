@@ -46,6 +46,7 @@ export class Classes {
     existingClass.setSemester(updatedClass.getSemester());
     existingClass.setYear(updatedClass.getYear());
     existingClass.setGradeType(updatedClass.getGradeType());
+    existingClass.setGoals(updatedClass.getGoals());
     
     // Update enrollments: merge existing with updated enrollments
     const updatedEnrollments = updatedClass.getEnrollments();
@@ -88,12 +89,12 @@ export class Classes {
    * Changes the topic, semester and year (and therefore the id) of a
    * registered class, keeping class ids unique.
    */
-  updateClassIdentification(classId: string, topic: string, semester: number, year: number, gradeType: GradeType): Class {
+  updateClassIdentification(classId: string, topic: string, semester: number, year: number, gradeType: GradeType, goals: string[]): Class {
     const existingClass = this.findClassById(classId);
     if (!existingClass) {
       throw new DomainError('Class not found');
     }
-    const newId = new Class(topic, semester, year, existingClass.getGradeType(), existingClass.getAverageCalculationSpecification()).getClassId();
+    const newId = new Class(topic, semester, year, existingClass.getGradeType(), existingClass.getGoals(), existingClass.getAverageCalculationSpecification()).getClassId();
     const conflictingClass = this.findClassById(newId);
     if (conflictingClass && conflictingClass !== existingClass) {
       throw new DomainError('Class with same topic, year, and semester already exists');
@@ -102,6 +103,7 @@ export class Classes {
     existingClass.setSemester(semester);
     existingClass.setYear(year);
     existingClass.setGradeType(gradeType);
+    existingClass.setGoals(goals);
     return existingClass;
   }
 
