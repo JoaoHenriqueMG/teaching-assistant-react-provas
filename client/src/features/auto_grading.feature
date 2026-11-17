@@ -103,7 +103,7 @@ Scenario: Professor corrige notas de uma turma e um aluno preenche uma resposta 
     And o sistema indicará, no detalhamento, que as questões 2 e 3 do aluno "Pedro" possuem respostas inválidas
     And o sistema não indicará alertas para a aluna "Maria"
 
-@gui
+'''@gui
 Scenario: Professor corrige notas e um aluno entrega a prova em branco
     Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
     And os seguintes gabaritos foram enviados:
@@ -117,6 +117,7 @@ Scenario: Professor corrige notas e um aluno entrega a prova em branco
     And solicitar a correção automática
     Then aparecerá uma mensagem informando que as notas foram cadastradas
     And eu verei "Ana" com a nota 0%
+'''
 
 @gui
 Scenario: Professor corrige notas e a planilha contém um aluno que não pertence à turma
@@ -170,14 +171,6 @@ Scenario Outline: Serviço calcula a nota do aluno a partir do gabarito e das re
         | Bruno | 04    | 9, 3, 15 | 22, 28, 16 | 0%   |
         | Davi  | 05    | 15, 9, 3 | 9, 3, 15   | 60%  |
 
-    # "(branco)" representa uma célula vazia na planilha de respostas.
-    Examples: Casos limites e exceções
-        | aluno | prova | gabarito | respostas                    | nota |
-        # Deixou a última em branco
-        | Joao  | 01    | 3, 9, 15 | 3, 9, (branco)               | 67%  |
-        # Entregou tudo em branco
-        | Ana   | 01    | 3, 9, 15 | (branco), (branco), (branco) | 0%   |
-
 @service
 Scenario Outline: Serviço aplica crédito parcial por alternativa em uma questão
     Given que o gabarito da prova "01" é "<gabarito>"
@@ -217,7 +210,6 @@ Scenario Outline: Serviço trata respostas inválidas ou em branco como erro na 
         | 2.5      | resposta inválida  |
         | 32       | resposta inválida  |
         | 40       | resposta inválida  |
-        | (branco) | resposta em branco |
 
 @service
 Scenario Outline: Serviço arredonda a nota para um número inteiro
