@@ -11,6 +11,7 @@ import { gradeImportRoutes } from './routes/gradeImport';
 import { errorHandler } from './routes/HttpError';
 import { QuestionBank } from './models/QuestionBank';
 import { questionRoutes } from './routes/questions';
+import { autoGradingRoutes } from './routes/autoGrading';
 
 /** Everything the HTTP application needs, injected by the composition root. */
 export interface AppDependencies {
@@ -41,7 +42,8 @@ export function createApp({ students, classes, repository, questionBank }: AppDe
   app.use('/api/classes', classRoutes(classes, onStateChanged));
   app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
   app.use('/api/classes', reportRoutes(classes));
-  app.use('/api/classes', gradeImportRoutes());
+  app.use('/api/classes', gradeImportRoutes(classes));
+  app.use('/api/classes', autoGradingRoutes(classes, onStateChanged));
   app.use('/api/questions', questionRoutes(questionBank));
   app.use(errorHandler);
 
