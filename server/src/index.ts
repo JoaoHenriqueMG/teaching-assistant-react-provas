@@ -2,6 +2,7 @@ import * as path from 'path';
 import { createApp } from './app';
 import { StudentSet } from './models/StudentSet';
 import { Classes } from './models/Classes';
+import { QuestionBank } from './models/QuestionBank';
 import { JsonFileRepository } from './persistence/JsonFileRepository';
 
 /**
@@ -15,9 +16,15 @@ const PORT = Number(process.env.PORT) || 3005;
 
 const students = new StudentSet();
 const classes = new Classes();
+const questionBank = new QuestionBank();
 const repository = new JsonFileRepository(path.resolve('./data/app-data.json'));
 repository.load(students, classes);
 
-createApp({ students, classes, repository }).listen(PORT, () => {
+createApp({
+  students,
+  classes,
+  repository,
+  questionBank
+}).listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
