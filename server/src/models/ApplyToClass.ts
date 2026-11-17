@@ -1,6 +1,6 @@
 import { Class, GradeType } from './Class';
 import { Enrollment } from './Enrollment';
-import { EVALUATION_GOALS, Grade } from './Evaluation';
+import { Grade } from './Evaluation';
 import { cleanCPF } from './CPF';
 import { DomainError } from './DomainError';
 import { GradingResult } from './AutoGrading';
@@ -31,10 +31,11 @@ export function percentageToGrade(percentage: number, gradeType: GradeType): Gra
   return Math.round(percentage) / 10;
 }
 
-/** The exam grades are saved as the evaluation of one of the class goals. */
-export function assertEvaluationGoal(goal: string): void {
-  if (!(EVALUATION_GOALS as readonly string[]).includes(goal)) {
-    throw new DomainError(`Meta inválida: "${goal}". Use uma de: ${EVALUATION_GOALS.join(', ')}`);
+/** The exam grades are saved as the evaluation of one of the goals of the class. */
+export function assertClassGoal(classObj: Class, goal: string): void {
+  const goals = classObj.getGoals();
+  if (!goals.includes(goal)) {
+    throw new DomainError(`Meta inválida: "${goal}". Use uma de: ${goals.join(', ')}`);
   }
 }
 
@@ -70,7 +71,7 @@ export function splitByEnrollment(
  * the one the student already had for it.
  */
 export function applyGrades(classObj: Class, enrolled: readonly EnrolledResult[], goal: string): void {
-  assertEvaluationGoal(goal);
+  assertClassGoal(classObj, goal);
   const gradeType = classObj.getGradeType();
   for (const { result, enrollment } of enrolled) {
     enrollment.addOrUpdateEvaluation(goal, percentageToGrade(result.percentage, gradeType));

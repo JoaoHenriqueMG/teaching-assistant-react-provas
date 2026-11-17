@@ -3,9 +3,10 @@ import { RequestHandler, Router } from 'express';
 import multer from 'multer';
 import { Classes } from '../models/Classes';
 import { Class } from '../models/Class';
+import { formatCPF } from '../models/CPF';
 import { rank } from '../models/Ranking';
 import { DEFAULT_ALTERNATIVES, MAX_ALTERNATIVES, MIN_ALTERNATIVES, gradeExam, isValidAlternativesCount } from '../models/AutoGrading';
-import { applyGrades, assertEvaluationGoal, percentageToGrade, splitByEnrollment } from '../models/ApplyToClass';
+import { applyGrades, assertClassGoal, percentageToGrade, splitByEnrollment } from '../models/ApplyToClass';
 import { parseCsv, readAnswerKeys, readResponses } from '../models/Spreadsheet';
 import { badRequest, notFound } from './HttpError';
 import { isNonEmptyString } from './validation';
@@ -70,7 +71,7 @@ export function autoGradingRoutes(classes: Classes, onStateChanged: () => void):
     if (!isNonEmptyString(goal)) {
       throw badRequest('A meta (goal) que receberá as notas é obrigatória');
     }
-    assertEvaluationGoal(goal);
+    assertClassGoal(classObj, goal);
 
     const alternatives = rawAlternatives === undefined || rawAlternatives === '' ? DEFAULT_ALTERNATIVES : Number(rawAlternatives);
     if (!isValidAlternativesCount(alternatives)) {
@@ -96,7 +97,7 @@ export function autoGradingRoutes(classes: Classes, onStateChanged: () => void):
       (a, b) => a.enrollment.getStudent().getName().localeCompare(b.enrollment.getStudent().getName())
     ).map(({ item: { result, enrollment }, rank: position }) => ({
       rank: position,
-      studentId: enrollment.getStudent().getCPF(),
+      studentId: formatCPF(enrollment.getStudent().getCPF()), // as the rest of the API shows it
       studentName: enrollment.getStudent().getName(),
       examNumber: result.examNumber,
       percentage: result.percentage,

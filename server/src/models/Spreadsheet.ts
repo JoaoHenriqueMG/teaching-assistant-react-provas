@@ -1,4 +1,4 @@
-import { DomainError } from './DomainError';
+import { DomainError } from '../models/DomainError';
 import { AnswerKeyEntry, StudentResponseEntry } from './AutoGrading';
 
 /**
@@ -6,10 +6,14 @@ import { AnswerKeyEntry, StudentResponseEntry } from './AutoGrading';
  * responses sheet. It only knows file formats: what the answers mean is
  * decided in AutoGrading.ts.
  *
- * Expected columns (names ignore case and accents, order does not matter):
- * - answer key: "número da prova", "questão 1", "questão 2", ...
- * - responses:  "número da prova", "CPF", "nome" (optional), "questão 1", ...
- *               and any other column, such as the timestamp or the e-mail.
+ * Columns are found by name (ignoring case and accents), in any order:
+ * - answer key: "número da prova"
+ * - responses:  "número da prova" and "CPF"; "nome" is optional
+ *
+ * The answers are every column AFTER the last of those identifying columns,
+ * whatever their titles, in the order they appear. Columns before them (the
+ * timestamp, the e-mail...) are ignored, and so are columns with no title.
+ * So the answers must be the last columns of the sheet.
  */
 
 const DELIMITERS = [',', ';', '\t'];
@@ -81,32 +85,27 @@ export function parseCsv(text: string): string[][] {
 const normalizeHeader = (header: string): string =>
   header.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 
-interface Layout {
-  names: string[];
-  questionColumns: number[]; // column indexes, in the order of the question numbers
-}
+const namesOf = (header: string[]): string[] => header.map(normalizeHeader);
 
-function layoutOf(header: string[]): Layout {
-  const names = header.map(normalizeHeader);
-  const questionColumns = names
-    .map((name, index) => ({ index, match: /^questao (\d+)$/.exec(name) }))
-    .filter(column => column.match !== null)
-    .map(column => ({ index: column.index, number: Number(column.match![1]) }))
-    .sort((a, b) => a.number - b.number)
-    .map(column => column.index);
-
-  if (questionColumns.length === 0) {
-    throw new DomainError('Formato inválido: nenhuma coluna de questão (ex.: "questão 1") encontrada');
-  }
-  return { names, questionColumns };
-}
-
-function requireColumn(layout: Layout, name: string, label: string): number {
-  const index = layout.names.indexOf(name);
+function requireColumn(names: string[], wanted: string, label: string): number {
+  const index = names.indexOf(wanted);
   if (index < 0) {
     throw new DomainError(`Formato inválido: coluna "${label}" ausente`);
   }
   return index;
+}
+
+/** The columns after `anchor` that have a title, in order: they hold the answers. */
+function answerColumnsAfter(header: string[], anchor: number, anchorLabel: string): number[] {
+  const columns = header
+    .map((title, index) => ({ title, index }))
+    .filter(column => column.index > anchor && column.title.trim() !== '')
+    .map(column => column.index);
+
+  if (columns.length === 0) {
+    throw new DomainError(`Formato inválido: nenhuma coluna de resposta depois de "${anchorLabel}"`);
+  }
+  return columns;
 }
 
 function headerOf(rows: string[][]): string[] {
@@ -118,26 +117,31 @@ function headerOf(rows: string[][]): string[] {
 
 /** One entry per row below the header. A file with only the header gives an empty list. */
 export function readAnswerKeys(rows: string[][]): AnswerKeyEntry[] {
-  const layout = layoutOf(headerOf(rows));
-  const examColumn = requireColumn(layout, 'numero da prova', 'número da prova');
+  const header = headerOf(rows);
+  const names = namesOf(header);
+  const examColumn = requireColumn(names, 'numero da prova', 'número da prova');
+  const answerColumns = answerColumnsAfter(header, examColumn, 'número da prova');
 
   return rows.slice(1).map(row => ({
     examNumber: row[examColumn] ?? '',
-    answers: layout.questionColumns.map(column => row[column])
+    answers: answerColumns.map(column => row[column])
   }));
 }
 
 /** One entry per row below the header. A file with only the header gives an empty list. */
 export function readResponses(rows: string[][]): StudentResponseEntry[] {
-  const layout = layoutOf(headerOf(rows));
-  const examColumn = requireColumn(layout, 'numero da prova', 'número da prova');
-  const studentColumn = requireColumn(layout, 'cpf', 'CPF');
-  const nameColumn = layout.names.indexOf('nome');
+  const header = headerOf(rows);
+  const names = namesOf(header);
+  const examColumn = requireColumn(names, 'numero da prova', 'número da prova');
+  const studentColumn = requireColumn(names, 'cpf', 'CPF');
+  const nameColumn = names.indexOf('nome');
+  const anchor = Math.max(examColumn, studentColumn); // the answers start after both
+  const answerColumns = answerColumnsAfter(header, anchor, anchor === studentColumn ? 'CPF' : 'número da prova');
 
   return rows.slice(1).map(row => ({
     studentId: row[studentColumn] ?? '',
     studentName: nameColumn >= 0 ? (row[nameColumn] ?? '').trim() : '',
     examNumber: row[examColumn] ?? '',
-    answers: layout.questionColumns.map(column => row[column])
+    answers: answerColumns.map(column => row[column])
   }));
 }
