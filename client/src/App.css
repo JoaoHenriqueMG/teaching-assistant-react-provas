@@ -1229,3 +1229,135 @@ tbody tr:last-child td {
   padding: 20px;
   text-align: center;
 }
+
+/* Auto-grading */
+.auto-grading {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+}
+
+.auto-grading-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.alternatives-input {
+  width: 5rem;
+}
+
+/* The grade fields are typed, so the spin arrows only get in the way */
+.grade-numeric::-webkit-outer-spin-button,
+.grade-numeric::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.grade-numeric {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.auto-grading-notice {
+  margin: 0.5rem 0;
+  color: #7a4b00;
+}
+
+.auto-grading-result {
+  margin-top: 1rem;
+}
+
+.auto-grading-message {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+.auto-grading-message.ok {
+  background: #e6f4ea;
+  color: #14532d;
+}
+.auto-grading-message.with-warnings {
+  background: #fff4e5;
+  color: #7a4b00;
+}
+
+.auto-grading-alert {
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+  margin-bottom: 0.5rem;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ranking-table th,
+.ranking-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.warning-badge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  background: #fff4e5;
+  color: #7a4b00;
+  font-size: 0.85em;
+}
+
+.invalid-answer {
+  color: #b42318;
+}
+
+/* Goals editor */
+.goals-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.goal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e3a8a;
+}
+
+.goal-chip-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  color: inherit;
+}
+.goal-chip-remove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.goal-add {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.goals-note {
+  color: #6b7280;
+}
