@@ -26,6 +26,15 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
+      "gradeType": "concept",
+      "goals": [
+        "Requirements",
+        "Configuration Management",
+        "Project Management",
+        "Design",
+        "Tests",
+        "Refactoring"
+      ],
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -132,6 +141,15 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
+      "gradeType": "concept",
+      "goals": [
+        "Requirements",
+        "Configuration Management",
+        "Project Management",
+        "Design",
+        "Tests",
+        "Refactoring"
+      ],
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -215,10 +233,89 @@
       ]
     },
     {
-      "topic": "numeric_test",
+      "topic": "Turma Teste",
       "semester": 1,
       "year": 2026,
       "gradeType": "numeric",
+      "goals": [
+        "Goals 1",
+        "Goals 2"
+      ],
+      "averageCalculationSpecification": {
+        "gradeWeights": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "goalWeights": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
+            {
+              "goal": "Goals 1",
+              "grade": 3.3
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [
+            {
+              "goal": "Goals 1",
+              "grade": 10
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "11111111111",
+          "evaluations": [
+            {
+              "goal": "Goals 1",
+              "grade": 8.7
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": [
+            {
+              "goal": "Goals 1",
+              "grade": 10
+            }
+          ],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        }
+      ]
+    },
+    {
+      "topic": "Turma 2",
+      "semester": 1,
+      "year": 2027,
+      "gradeType": "numeric",
+      "goals": [
+        "Goals 1",
+        "Goals 2"
+      ],
       "averageCalculationSpecification": {
         "gradeWeights": {
           "MA": 10,
@@ -237,10 +334,65 @@
       "enrollments": [
         {
           "studentCPF": "33333333333",
+          "evaluations": [],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        },
+        {
+          "studentCPF": "11111111111",
+          "evaluations": [],
+          "averageBeforeFinalExam": null,
+          "averageAfterFinalExam": null,
+          "failedByAbsence": false
+        }
+      ]
+    },
+    {
+      "topic": "numeric_test",
+      "semester": 1,
+      "year": 2026,
+      "gradeType": "numeric",
+      "goals": [
+        "aasdasdas",
+        "asdsadw"
+      ],
+      "averageCalculationSpecification": {
+        "gradeWeights": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "goalWeights": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "11111111111",
           "evaluations": [
             {
-              "goal": "Requirements",
-              "grade": 3.5
+              "goal": "aasdasdas",
+              "grade": 8.7
             }
           ],
           "averageBeforeFinalExam": null,
@@ -248,11 +400,11 @@
           "failedByAbsence": false
         },
         {
-          "studentCPF": "55555555555",
+          "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Configuration Management",
-              "grade": 4.5
+              "goal": "aasdasdas",
+              "grade": 10
             }
           ],
           "averageBeforeFinalExam": null,

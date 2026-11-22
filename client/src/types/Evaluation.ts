@@ -14,7 +14,7 @@ export interface Evaluation {
 }
 
 /** The learning goals graded in every class (same list as the server's). */
-export const EVALUATION_GOALS = [
+export const DEFAULT_EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 
   'Project Management',
@@ -23,4 +23,4 @@ export const EVALUATION_GOALS = [
   'Refactoring'
 ] as const;
 
-export type EvaluationGoal = typeof EVALUATION_GOALS[number];
+export type EvaluationGoal = typeof DEFAULT_EVALUATION_GOALS[number];

@@ -1,5 +1,6 @@
 import { Class } from '../types/Class';
 import { Student } from '../types/Student';
+import { DEFAULT_EVALUATION_GOALS } from '../types/Evaluation';
 
 export const ana: Student = { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' };
 export const bruno: Student = { name: 'Bruno Melo', cpf: '987.654.321-00', email: 'bruno@cin.ufpe.br' };
@@ -10,6 +11,7 @@ export const softwareEngineering: Class = {
   semester: 1,
   year: 2025,
   gradeType: 'concept',
+  goals: [...DEFAULT_EVALUATION_GOALS],
   averageCalculationSpecification: { gradeWeights: { MA: 10, MPA: 7, MANA: 0 }, goalWeights: { Design: 1 } },
   enrollments: [{ student: ana, evaluations: [{ goal: 'Design', grade: 'MPA' }] }]
 };
@@ -21,5 +23,6 @@ export const databases: Class = {
   semester: 2,
   year: 2024,
   gradeType: 'concept',
+  goals: [...DEFAULT_EVALUATION_GOALS],
   enrollments: []
 };

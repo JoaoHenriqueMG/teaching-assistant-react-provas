@@ -1249,30 +1249,248 @@ tbody tr:last-child td {
   width: 5rem;
 }
 
-/* The grade fields are typed, so the spin arrows only get in the way */
-.grade-numeric::-webkit-outer-spin-button,
-.grade-numeric::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+/* ---------- Auto-grade button (Evaluations tab) ---------- */
+.evaluation-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.auto-grade-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #1d8348;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1d8348;
+  font-weight: 600;
+  cursor: pointer;
+}
+.auto-grade-btn:hover {
+  background: #eaf6ee;
+}
+
+.rank-order-note {
+  margin: 0.25rem 0 0.5rem;
+  color: #6b7280;
+  font-size: 0.9em;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rank-badge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  background: #eef2ff;
+  color: #1e3a8a;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* ---------- Popup ---------- */
+.auto-grading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.auto-grading-modal {
+  box-sizing: border-box;
+  width: min(680px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.auto-grading-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.auto-grading-modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
 }
-.grade-numeric {
-  -moz-appearance: textfield;
-  appearance: textfield;
+
+.auto-grading-close {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.auto-grading-subtitle {
+  margin: 0.25rem 0 1rem;
+  color: #6b7280;
+}
+
+.auto-grading-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* ---------- Rounded sheet boxes (icon + text) ---------- */
+.sheet-dropzone-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sheet-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1rem 1.6rem;
+  border: 3px solid #1f2937;
+  border-radius: 32px;
+  background: #ffffff;
+  cursor: pointer;
+}
+.sheet-dropzone:hover,
+.sheet-dropzone.dragging {
+  border-color: #1d8348;
+  background: #f1faf4;
+}
+.sheet-dropzone.has-file {
+  border-color: #1d8348;
+}
+.sheet-dropzone:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.sheet-dropzone .sheet-icon {
+  flex: none;
+}
+
+.sheet-dropzone-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.sheet-dropzone-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.sheet-dropzone-hint {
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.sheet-file-name {
+  overflow-wrap: anywhere;
+}
+
+/* The input stays in the page (so it can be reached and tested) but is not drawn */
+.sheet-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.sheet-remove {
+  align-self: flex-start;
+  margin-left: 1.6rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: #b42318;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+/* The example of the expected format, faded like a placeholder */
+.sheet-example-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sheet-example {
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.sheet-example th,
+.sheet-example td {
+  padding: 0.12rem 0.45rem;
+  border: 1px solid #9ca3af;
+  text-align: left;
+}
+.sheet-example th {
+  background: #e5e7eb;
+  font-weight: 600;
+}
+
+.auto-grading-help {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85em;
+}
+
+.auto-grading-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
 }
 
 .auto-grading-notice {
-  margin: 0.5rem 0;
+  margin: 0;
   color: #7a4b00;
 }
 
+/* ---------- Result ---------- */
 .auto-grading-result {
-  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .auto-grading-message {
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  margin-bottom: 0.5rem;
 }
 .auto-grading-message.ok {
   background: #e6f4ea;
@@ -1287,7 +1505,10 @@ tbody tr:last-child td {
   padding: 0.5rem 0.75rem;
   border-left: 4px solid #d97706;
   background: #fffbeb;
-  margin-bottom: 0.5rem;
+}
+
+.ranking-scroll {
+  overflow-x: auto;
 }
 
 .ranking-table {
@@ -1316,7 +1537,18 @@ tbody tr:last-child td {
   color: #b42318;
 }
 
-/* Goals editor */
+/* ---------- Numeric grade fields: the spin arrows only get in the way ---------- */
+.grade-numeric::-webkit-outer-spin-button,
+.grade-numeric::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.grade-numeric {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ---------- Goals editor (class form) ---------- */
 .goals-editor {
   display: flex;
   flex-direction: column;

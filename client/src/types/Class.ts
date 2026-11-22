@@ -10,6 +10,7 @@ export interface Class {
   semester: number;
   year: number;
   gradeType: GradeType;
+  goals: string[];
   averageCalculationSpecification: AverageCalculationSpecification;
   enrollments: Enrollment[];
 }
@@ -20,6 +21,7 @@ export interface CreateClassRequest {
   semester: number;
   year: number;
   gradeType: GradeType;
+  goals: string[];
 }
 
 export interface UpdateClassRequest {
@@ -27,6 +29,7 @@ export interface UpdateClassRequest {
   semester?: number;
   year?: number;
   gradeType?: GradeType;
+  goals: string[];
 }
 
 /** Computes a class id the way the server does; prefer the id the server sends with each class. */

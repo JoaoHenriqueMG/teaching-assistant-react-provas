@@ -1,8 +1,3 @@
-/** Same bounds as the server (AutoGrading.ts): the number of alternatives of a question. */
-export const MIN_ALTERNATIVES = 1;
-export const MAX_ALTERNATIVES = 30;
-export const DEFAULT_ALTERNATIVES = 5;
-
 /** What the student marked in one question: a valid answer or something that could not be read. */
 export type StudentAnswer =
   | { kind: 'answer'; value: number }
@@ -22,6 +17,7 @@ export interface RankedStudent {
   studentId: string; // formatted CPF, as in Student.cpf
   studentName: string;
   examNumber: string;
+  alternatives: number; // per question, as written in the answer key sheet for this exam
   percentage: number; // of the exam, integer
   grade: string | number; // as saved: a concept or a number from 0 to 10
   warnings: string[]; // one per invalid answer
@@ -38,7 +34,6 @@ export interface StudentNotInClass {
 export interface AutoGradingResponse {
   saved: boolean; // false for a preview
   goal: string;
-  alternatives: number;
   ranking: RankedStudent[];
   notInClass: StudentNotInClass[];
   warnings: string[]; // not tied to one student, e.g. a student who submitted twice
@@ -48,5 +43,4 @@ export interface AutoGradingRequest {
   answerKey: File;
   responses: File;
   goal: string; // a goal of the class, which receives the grades
-  alternatives: number;
 }

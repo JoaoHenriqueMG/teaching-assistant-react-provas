@@ -2,12 +2,11 @@ import { AutoGradingRequest, AutoGradingResponse } from '../types/AutoGrading';
 import { request } from './apiClient';
 import { classPath } from './ClassService';
 
-const toFormData = ({ answerKey, responses, goal, alternatives }: AutoGradingRequest): FormData => {
+const toFormData = ({ answerKey, responses, goal }: AutoGradingRequest): FormData => {
   const form = new FormData();
   form.append('answerKey', answerKey);
   form.append('responses', responses);
   form.append('goal', goal);
-  form.append('alternatives', String(alternatives));
   return form;
 };
 
