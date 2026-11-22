@@ -1,15 +1,25 @@
 import { cleanCPF } from '../models/CPF';
 
 /**
+ * Automatic grading of multiple-answer exams.
+ *
+ * Every question has n alternatives worth 1, 2, 4, 8, ... (powers of two) and
+ * an answer is the sum of the marked alternatives, so it is an integer from 0
+ * to 2^n - 1. Each alternative is worth 1/n of the question and counts as
+ * correct when its state (marked or not) matches the answer key.
+ *
+ * The number of alternatives n comes with the answer key, one value per exam
+ * (a column of the answer key sheet), so each exam can have its own.
+ *
+ * This module is pure: it knows nothing about HTTP, files or classes.
+ */
+
+/**
  * Bounds for the number of alternatives. JavaScript bitwise operators work on
  * 32 bits, so 30 is the largest count whose answers (up to 2^30 - 1) are safe.
  */
 export const MIN_ALTERNATIVES = 1;
 export const MAX_ALTERNATIVES = 30;
-export const DEFAULT_ALTERNATIVES = 5;
-
-export const isValidAlternativesCount = (value: unknown): value is number =>
-  Number.isInteger(value) && (value as number) >= MIN_ALTERNATIVES && (value as number) <= MAX_ALTERNATIVES;
 
 /** The largest valid answer: every alternative marked (31 with 5 alternatives). */
 export const maxValidAnswer = (alternatives: number): number => 2 ** alternatives - 1;
@@ -19,6 +29,7 @@ export type RawCell = string | number | null | undefined;
 
 export interface AnswerKeyEntry {
   examNumber: string;
+  alternatives: RawCell; // How many alternatives each question of this exam has
   answers: RawCell[]; // One per question
 }
 
@@ -29,15 +40,19 @@ export interface StudentResponseEntry {
   answers: RawCell[]; // One per question
 }
 
+/**
+ * An answer cell read as a number. All answers of the form are mandatory, so
+ * there is no "blank" answer: an empty cell is just an invalid one.
+ */
 export type ParsedAnswer =
   | { kind: 'answer'; value: number }
   | { kind: 'invalid'; raw: string };
 
 export type GradingErrorCode =
-  | 'INVALID_ALTERNATIVES'
   | 'NO_ANSWER_KEYS'
   | 'NO_RESPONSES'
   | 'DUPLICATE_EXAM_IN_ANSWER_KEY'
+  | 'INVALID_ALTERNATIVES'
   | 'INVALID_ANSWER_KEY'
   | 'EXAM_NOT_IN_ANSWER_KEY'
   | 'ANSWER_COUNT_MISMATCH';
@@ -60,13 +75,13 @@ export interface GradingResult {
   studentId: string;
   studentName: string;
   examNumber: string;
+  alternatives: number; // Per question, as set in the answer key for this exam
   percentage: number; // Of the exam, rounded to the nearest integer
   questionResults: QuestionResult[];
   warnings: string[]; // One per invalid answer
 }
 
 export interface GradingInput {
-  alternatives: number;
   keys: AnswerKeyEntry[];
   responses: StudentResponseEntry[];
 }
@@ -78,13 +93,20 @@ export interface GradingOutput {
 }
 
 /**
- * TRULY NECESSARY? SHOULD I CHANGE ON THE FEATURES?
  * Exam numbers are compared without leading zeros, because spreadsheet
  * programs turn "01" into 1.
  */
 export function normalizeExamNumber(raw: unknown): string {
   const text = String(raw ?? '').trim();
   return /^\d+$/.test(text) ? text.replace(/^0+(?=\d)/, '') : text;
+}
+
+/** Reads the number of alternatives of an exam: a whole number from MIN_ALTERNATIVES to MAX_ALTERNATIVES. */
+export function parseAlternatives(raw: RawCell): number | undefined {
+  const text = String(raw ?? '').trim();
+  if (!/^\d+$/.test(text)) return undefined;
+  const value = Number(text);
+  return value >= MIN_ALTERNATIVES && value <= MAX_ALTERNATIVES ? value : undefined;
 }
 
 /** Reads an answer cell: only whole numbers from 0 to 2^n - 1 are valid. */
@@ -115,20 +137,22 @@ export function matchingAlternatives(key: number, answer: number, alternatives: 
 const toPercentage = (hits: number, total: number): number =>
   total === 0 ? 0 : Math.round((hits * 100) / total);
 
-const describe = (raw: string): string => (raw === '' ? 'vazia' : raw);
+/** An invalid cell as shown in messages, with the reason when it is a number that is too large. */
+function describeInvalid(raw: string, alternatives: number): string {
+  if (raw === '') return 'vazia';
+  return /^\d+$/.test(raw) ? `${raw}; o máximo com ${alternatives} alternativas é ${maxValidAnswer(alternatives)}` : raw;
+}
+
+interface ExamKey {
+  alternatives: number;
+  answers: number[];
+}
 
 /**
  * Checks everything that makes the files unusable as a whole. Returns every
  * problem found, not only the first.
  */
-export function validateGradingInput({ alternatives, keys, responses }: GradingInput): GradingError[] {
-  if (!isValidAlternativesCount(alternatives)) {
-    return [{
-      code: 'INVALID_ALTERNATIVES',
-      message: `O número de alternativas deve ser um inteiro entre ${MIN_ALTERNATIVES} e ${MAX_ALTERNATIVES}`
-    }];
-  }
-
+export function validateGradingInput({ keys, responses }: GradingInput): GradingError[] {
   const errors: GradingError[] = [];
   if (keys.length === 0) {
     errors.push({ code: 'NO_ANSWER_KEYS', message: 'A planilha de gabaritos não possui nenhum gabarito' });
@@ -138,7 +162,7 @@ export function validateGradingInput({ alternatives, keys, responses }: GradingI
   }
 
   const knownExams = new Set<string>();
-  const questionCounts = new Map<string, number>(); // only for usable keys
+  const usableKeys = new Map<string, { alternatives: number; questions: number }>();
   for (const key of keys) {
     const exam = normalizeExamNumber(key.examNumber);
     if (knownExams.has(exam)) {
@@ -146,6 +170,15 @@ export function validateGradingInput({ alternatives, keys, responses }: GradingI
       continue;
     }
     knownExams.add(exam);
+
+    const alternatives = parseAlternatives(key.alternatives);
+    if (alternatives === undefined) {
+      errors.push({
+        code: 'INVALID_ALTERNATIVES',
+        message: `Prova ${exam}: número de alternativas inválido (${String(key.alternatives ?? '').trim() || 'vazio'}); use um inteiro de ${MIN_ALTERNATIVES} a ${MAX_ALTERNATIVES}`
+      });
+      continue;
+    }
 
     if (key.answers.length === 0) {
       errors.push({ code: 'INVALID_ANSWER_KEY', message: `O gabarito da prova ${exam} não possui questões` });
@@ -158,12 +191,12 @@ export function validateGradingInput({ alternatives, keys, responses }: GradingI
         usable = false;
         errors.push({
           code: 'INVALID_ANSWER_KEY',
-          message: `Gabarito da prova ${exam}, questão ${index + 1}: resposta inválida (${describe(parsed.raw)})`
+          message: `Gabarito da prova ${exam}, questão ${index + 1}: resposta inválida (${describeInvalid(parsed.raw, alternatives)})`
         });
       }
     });
     if (usable) {
-      questionCounts.set(exam, key.answers.length);
+      usableKeys.set(exam, { alternatives, questions: key.answers.length });
     }
   }
 
@@ -177,7 +210,7 @@ export function validateGradingInput({ alternatives, keys, responses }: GradingI
       }
       continue;
     }
-    const expected = questionCounts.get(exam);
+    const expected = usableKeys.get(exam)?.questions;
     if (expected !== undefined && response.answers.length !== expected) {
       errors.push({
         code: 'ANSWER_COUNT_MISMATCH',
@@ -189,17 +222,18 @@ export function validateGradingInput({ alternatives, keys, responses }: GradingI
   return errors;
 }
 
-function gradeStudent(response: StudentResponseEntry, answerKey: number[], alternatives: number): GradingResult {
+function gradeStudent(response: StudentResponseEntry, exam: ExamKey): GradingResult {
+  const { alternatives } = exam;
   const warnings: string[] = [];
   let totalHits = 0;
 
-  const questionResults = answerKey.map((key, index): QuestionResult => {
+  const questionResults = exam.answers.map((key, index): QuestionResult => {
     const answer = parseAnswer(response.answers[index], alternatives);
     let hits = 0;
     if (answer.kind === 'answer') {
       hits = matchingAlternatives(key, answer.value, alternatives);
     } else {
-      warnings.push(`Questão ${index + 1}: resposta inválida (${describe(answer.raw)})`);
+      warnings.push(`Questão ${index + 1}: resposta inválida (${describeInvalid(answer.raw, alternatives)})`);
     }
     totalHits += hits;
     return {
@@ -215,8 +249,9 @@ function gradeStudent(response: StudentResponseEntry, answerKey: number[], alter
     studentId: response.studentId,
     studentName: response.studentName,
     examNumber: normalizeExamNumber(response.examNumber),
+    alternatives,
     // Rounded once, over all the alternatives of the exam
-    percentage: toPercentage(totalHits, alternatives * answerKey.length),
+    percentage: toPercentage(totalHits, alternatives * exam.answers.length),
     questionResults,
     warnings
   };
@@ -236,16 +271,16 @@ export function gradeExam(input: GradingInput): GradingOutput {
     return { errors, warnings: [], results: [] };
   }
 
-  const { alternatives } = input;
-  const answerKeys = new Map<string, number[]>();
+  const exams = new Map<string, ExamKey>();
   for (const key of input.keys) {
-    answerKeys.set(
-      normalizeExamNumber(key.examNumber),
-      key.answers.flatMap(cell => {
+    const alternatives = parseAlternatives(key.alternatives) as number; // validated above
+    exams.set(normalizeExamNumber(key.examNumber), {
+      alternatives,
+      answers: key.answers.flatMap(cell => {
         const parsed = parseAnswer(cell, alternatives);
         return parsed.kind === 'answer' ? [parsed.value] : []; // all are valid here
       })
-    );
+    });
   }
 
   const warnings: string[] = [];
@@ -259,7 +294,7 @@ export function gradeExam(input: GradingInput): GradingOutput {
   }
 
   const results = Array.from(lastResponseOf.values()).map(response =>
-    gradeStudent(response, answerKeys.get(normalizeExamNumber(response.examNumber))!, alternatives)
+    gradeStudent(response, exams.get(normalizeExamNumber(response.examNumber))!)
   );
 
   return { errors: [], warnings, results };

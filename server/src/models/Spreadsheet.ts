@@ -7,7 +7,8 @@ import { AnswerKeyEntry, StudentResponseEntry } from './AutoGrading';
  * decided in AutoGrading.ts.
  *
  * Columns are found by name (ignoring case and accents), in any order:
- * - answer key: "número da prova"
+ * - answer key: "número da prova" and "alternativas" (how many alternatives
+ *               each question of that exam has)
  * - responses:  "número da prova" and "CPF"; "nome" is optional
  *
  * The answers are every column AFTER the last of those identifying columns,
@@ -95,11 +96,11 @@ function requireColumn(names: string[], wanted: string, label: string): number {
   return index;
 }
 
-/** The columns after `anchor` that have a title, in order: they hold the answers. */
-function answerColumnsAfter(header: string[], anchor: number, anchorLabel: string): number[] {
+/** The columns after `anchor` that have a title (except `skip`), in order: they hold the answers. */
+function answerColumnsAfter(header: string[], anchor: number, anchorLabel: string, skip: number[] = []): number[] {
   const columns = header
     .map((title, index) => ({ title, index }))
-    .filter(column => column.index > anchor && column.title.trim() !== '')
+    .filter(column => column.index > anchor && column.title.trim() !== '' && !skip.includes(column.index))
     .map(column => column.index);
 
   if (columns.length === 0) {
@@ -120,10 +121,15 @@ export function readAnswerKeys(rows: string[][]): AnswerKeyEntry[] {
   const header = headerOf(rows);
   const names = namesOf(header);
   const examColumn = requireColumn(names, 'numero da prova', 'número da prova');
-  const answerColumns = answerColumnsAfter(header, examColumn, 'número da prova');
+  const alternativesColumn = names.findIndex(name => name.includes('alternativa'));
+  if (alternativesColumn < 0) {
+    throw new DomainError('Formato inválido: coluna "alternativas" (número de alternativas de cada prova) ausente');
+  }
+  const answerColumns = answerColumnsAfter(header, examColumn, 'número da prova', [alternativesColumn]);
 
   return rows.slice(1).map(row => ({
     examNumber: row[examColumn] ?? '',
+    alternatives: row[alternativesColumn],
     answers: answerColumns.map(column => row[column])
   }));
 }
