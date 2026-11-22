@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Class, CreateClassRequest, GradeType } from '../types/Class';
 import { classService } from '../services/ClassService';
+import { GoalsEditor } from './GoalsEditor'
 
 interface ClassFormProps {
   editingClass: Class | null;          // Class being edited, or null to add a new one
@@ -14,12 +15,12 @@ const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
 const emptyForm = (): CreateClassRequest => ({
-  topic: '', semester: 1, year: currentYear, gradeType: 'concept'
+  topic: '', semester: 1, year: currentYear, gradeType: 'concept', goals: []
 });
 
 const formFor = (classObj: Class | null): CreateClassRequest =>
   classObj
-    ? { topic: classObj.topic, semester: classObj.semester, year: classObj.year, gradeType: classObj.gradeType }
+    ? { topic: classObj.topic, semester: classObj.semester, year: classObj.year, gradeType: classObj.gradeType, goals: classObj.goals }
     : emptyForm();
 
 /** Form to add a class or to edit the identification of an existing one. */
@@ -39,6 +40,14 @@ const ClassForm: React.FC<ClassFormProps> = ({ editingClass, onClassAdded, onCla
       [name]: name === 'semester' || name === 'year' ? parseInt(value) : value
     }));
   };
+
+  const handleGoalsChange = (updatedGoals: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      goals: updatedGoals
+    }));
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +91,13 @@ const ClassForm: React.FC<ClassFormProps> = ({ editingClass, onClassAdded, onCla
               required
             />
           </div>
+        </div>
+
+        <div className="goals-editor">
+            <GoalsEditor
+              goals={formData.goals}
+              onChange={handleGoalsChange}
+            />
         </div>
 
         <div className="form-row year-semester-row">

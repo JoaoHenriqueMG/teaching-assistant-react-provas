@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Class } from '../types/Class';
-import { EVALUATION_GOALS, GRADES } from '../types/Evaluation';
+import { GRADES } from '../types/Evaluation';
+import { RankedStudent } from '../types/AutoGrading';
 import { classService } from '../services/ClassService';
 import { enrollmentService } from '../services/EnrollmentService';
 import NumericGradeInput from './NumericGradeInput';
+import AutoGrading from './AutoGrading';
+import SheetIcon from './SheetIcon';
 
 import { ImportGradeComponent } from './ImportGrade';
 
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
 }
-
-
 
 const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -22,6 +23,11 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [showAutoGrading, setShowAutoGrading] = useState(false);
+  // Rank of each student (by CPF) after the last automatic correction; the rows follow this order
+  const [rankByCPF, setRankByCPF] = useState<Record<string, number>>({});
+
+  const currentGoals = selectedClass?.goals ?? [];
 
   const loadClasses = useCallback(async () => {
     try {
@@ -51,6 +57,12 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   }, [selectedClassId, classes]);
 
+  // Another class: the popup and the order of the previous one no longer apply
+  useEffect(() => {
+    setShowAutoGrading(false);
+    setRankByCPF({});
+  }, [selectedClassId]);
+
   const handleClassSelection = (classId: string) => {
     setSelectedClassId(classId);
     // Save selected class to localStorage for persistence
@@ -76,6 +88,12 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   };
 
+  // The grades were saved by the server: order the rows by rank and show the new grades
+  const handleGraded = (ranking: RankedStudent[]) => {
+    setRankByCPF(Object.fromEntries(ranking.map(student => [student.studentId, student.rank])));
+    loadClasses();
+  };
+
   if (isLoading && !hasLoaded) {
     return (
       <div className="evaluation-section">
@@ -84,6 +102,17 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       </div>
     );
   }
+
+  // Ranked students first, in rank order; the others follow by name
+  const orderedEnrollments = selectedClass
+    ? [...selectedClass.enrollments].sort(
+        (a, b) =>
+          (rankByCPF[a.student.cpf] ?? Infinity) - (rankByCPF[b.student.cpf] ?? Infinity) ||
+          a.student.name.localeCompare(b.student.name)
+      )
+    : [];
+
+  const isNumeric = selectedClass?.gradeType === 'numeric';
 
   return (
     <div className="evaluation-section">
@@ -128,25 +157,44 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
           <div>
             <ImportGradeComponent classID={selectedClassId} />
           </div>
-          <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
-          
+
+          <div className="evaluation-toolbar">
+            <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
+            <button
+              type="button"
+              className="auto-grade-btn"
+              data-testid="open-auto-grading"
+              onClick={() => setShowAutoGrading(true)}
+            >
+              <SheetIcon size={18} />
+              Auto-grade
+            </button>
+          </div>
+
+          {Object.keys(rankByCPF).length > 0 && (
+            <p className="rank-order-note" data-testid="rank-order-note">
+              Ordered by the last automatic correction.{' '}
+              <button type="button" className="link-btn" onClick={() => setRankByCPF({})}>
+                Back to name order
+              </button>
+            </p>
+          )}
+
           <div className="evaluation-matrix">
             <table className="evaluation-table">
               <thead>
                 <tr>
                   <th className="student-name-header">Student</th>
-                  {EVALUATION_GOALS.map(goal => (
+                  {currentGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {selectedClass.enrollments.map(enrollment => {
+                {orderedEnrollments.map(enrollment => {
                   const student = enrollment.student;
-                  
-                  // Create a map of evaluations for quick lookup
-                  const isNumeric = selectedClass.gradeType === 'numeric';
 
+                  // Create a map of evaluations for quick lookup
                   const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
                     acc[evaluation.goal] = String(evaluation.grade);
                     return acc;
@@ -154,34 +202,37 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
                   return (
                     <tr key={student.cpf} className="student-row">
-                      <td className="student-name-cell">{student.name}</td>
-                      {EVALUATION_GOALS.map(goal => {
+                      <td className="student-name-cell">
+                        {rankByCPF[student.cpf] !== undefined && (
+                          <span className="rank-badge" data-testid="student-rank">#{rankByCPF[student.cpf]}</span>
+                        )}
+                        {student.name}
+                      </td>
+                      {currentGoals.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
-                        
+
                         return (
                           <td key={goal} className="evaluation-cell">
-                            <td key={goal} className="evaluation-cell">
-                              {isNumeric ? (
-                                <NumericGradeInput
-                                  value={currentGrade}
-                                  onCommit={(v) =>
-                                    handleEvaluationChange(student.cpf, goal, v === '' ? '' : Number(v))
-                                  }
-                                  onError={onError}
-                                />
-                              ) : (
-                                <select
-                                  value={currentGrade}
-                                  onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
-                                  className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
-                                >
-                                  <option value="">-</option>
-                                  {GRADES.map(grade => (
-                                    <option key={grade} value={grade}>{grade}</option>
-                                  ))}
-                                </select>
-                              )}
-                            </td>
+                            {isNumeric ? (
+                              <NumericGradeInput
+                                value={currentGrade}
+                                onCommit={(v) =>
+                                  handleEvaluationChange(student.cpf, goal, v === '' ? '' : Number(v))
+                                }
+                                onError={onError}
+                              />
+                            ) : (
+                              <select
+                                value={currentGrade}
+                                onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
+                                className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
+                              >
+                                <option value="">-</option>
+                                {GRADES.map(grade => (
+                                  <option key={grade} value={grade}>{grade}</option>
+                                ))}
+                              </select>
+                            )}
                           </td>
                         );
                       })}
@@ -192,6 +243,15 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
             </table>
           </div>
         </div>
+      )}
+
+      {showAutoGrading && selectedClass && (
+        <AutoGrading
+          classObj={selectedClass}
+          onGraded={handleGraded}
+          onClose={() => setShowAutoGrading(false)}
+          onError={onError}
+        />
       )}
     </div>
   );

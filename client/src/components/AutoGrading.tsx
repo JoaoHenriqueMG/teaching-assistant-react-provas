@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Class } from '../types/Class';
-import {
-  AutoGradingResponse,
-  DEFAULT_ALTERNATIVES,
-  MAX_ALTERNATIVES,
-  MIN_ALTERNATIVES,
-  RankedStudent
-} from '../types/AutoGrading';
+import { AutoGradingResponse, RankedStudent } from '../types/AutoGrading';
 import { autoGradingService } from '../services/AutoGradingService';
+import SheetDropzone, { SheetExample } from './SheetDropzone';
+import SheetIcon from './SheetIcon';
 
 interface AutoGradingProps {
   classObj: Class;
   onGraded: (ranking: RankedStudent[]) => void; // called after the grades were saved
+  onClose: () => void;
   onError: (errorMessage: string) => void;
 }
+
+// What the professor sees, faded, before choosing each file
+const ANSWER_KEY_EXAMPLE: SheetExample = {
+  header: ['número da prova', 'alternativas', 'questão 1', 'questão 2', 'questão 3'],
+  rows: [
+    ['01', '5', '3', '9', '15'],
+    ['02', '5', '9', '15', '3']
+  ]
+};
+
+const RESPONSES_EXAMPLE: SheetExample = {
+  header: ['Carimbo de data/hora', 'nome', 'e-mail', 'CPF', 'número da prova', 'questão 1', 'questão 2', 'questão 3'],
+  rows: [['2026/11/17 10:30:45', 'Pedro', 'pedro@email.com', '111.111.111-11', '01', '3', '3', '15']]
+};
 
 const formatGrade = (grade: string | number): string => (typeof grade === 'number' ? grade.toFixed(1) : grade);
 
@@ -21,24 +32,38 @@ const describeQuestion = (student: RankedStudent, index: number): string => {
   const question = student.questionResults[index];
   const label = `Question ${question.questionIndex + 1}`;
   if (question.answer.kind === 'invalid') {
-    return `${label}: invalid answer (${question.answer.raw === '' ? 'empty' : question.answer.raw})`;
+    const { raw } = question.answer;
+    if (raw === '') return `${label}: invalid answer (empty)`;
+    const limit = /^\d+$/.test(raw)
+      ? ` — the maximum with ${student.alternatives} alternatives is ${2 ** student.alternatives - 1}`
+      : '';
+    return `${label}: invalid answer (${raw})${limit}`;
   }
   return `${label}: answered ${question.answer.value}, key ${question.answerKey} — ${question.percentage}%`;
 };
 
 /**
- * Corrects the exams of a class automatically: the professor sends the answer
- * key and the students' responses (CSV), picks the goal that receives the
- * grades and gets the students ranked. "Preview" shows the result without
- * saving anything.
+ * Popup that corrects the exams of a class automatically: the professor
+ * sends the answer key and the students' responses (CSV), picks the goal that
+ * receives the grades and gets the students ranked. "Preview" shows the
+ * result without saving anything. The number of alternatives of each exam is
+ * a column of the answer key sheet.
  */
-const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onError }) => {
+const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, onError }) => {
   const [answerKey, setAnswerKey] = useState<File | null>(null);
   const [responses, setResponses] = useState<File | null>(null);
   const [goal, setGoal] = useState('');
-  const [alternatives, setAlternatives] = useState(String(DEFAULT_ALTERNATIVES));
   const [result, setResult] = useState<AutoGradingResponse | null>(null);
   const [busy, setBusy] = useState<'preview' | 'grade' | null>(null);
+
+  // Esc closes the popup
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
 
   // The goal chosen earlier may not exist in another class
   const selectedGoal = classObj.goals.includes(goal) ? goal : classObj.goals[0] ?? '';
@@ -58,16 +83,11 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onError }
       onError('Upload both the answer key and the student responses spreadsheets');
       return;
     }
-    const count = Number(alternatives);
-    if (!Number.isInteger(count) || count < MIN_ALTERNATIVES || count > MAX_ALTERNATIVES) {
-      onError(`The number of alternatives must be a whole number from ${MIN_ALTERNATIVES} to ${MAX_ALTERNATIVES}`);
-      return;
-    }
 
     setBusy(commit ? 'grade' : 'preview');
     setResult(null);
     try {
-      const input = { answerKey, responses, goal: selectedGoal, alternatives: count };
+      const input = { answerKey, responses, goal: selectedGoal };
       const response = commit
         ? await autoGradingService.grade(classObj.id, input)
         : await autoGradingService.preview(classObj.id, input);
@@ -94,152 +114,168 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onError }
   };
 
   return (
-    <section className="auto-grading" data-testid="auto-grading">
-      <h4>Automatic correction</h4>
-
-      <div className="auto-grading-form">
-        <div className="form-group">
-          <label htmlFor="answerKeyFile">Answer key (CSV):</label>
-          <input
-            type="file"
-            id="answerKeyFile"
-            data-testid="answer-key-upload"
-            accept=".csv"
-            onChange={e => changed(setAnswerKey)(e.target.files?.[0] ?? null)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="responsesFile">Student responses (CSV):</label>
-          <input
-            type="file"
-            id="responsesFile"
-            data-testid="responses-upload"
-            accept=".csv"
-            onChange={e => changed(setResponses)(e.target.files?.[0] ?? null)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="gradeGoal">Goal that receives the grades:</label>
-          <select
-            id="gradeGoal"
-            data-testid="grade-goal"
-            value={selectedGoal}
-            onChange={e => changed(setGoal)(e.target.value)}
+    <div className="auto-grading-overlay">
+      <div
+        className="auto-grading-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auto-grading-title"
+        data-testid="auto-grading"
+      >
+        <div className="auto-grading-modal-header">
+          <h3 id="auto-grading-title">
+            <SheetIcon size={24} /> Automatic correction
+          </h3>
+          <button
+            type="button"
+            className="close-modal-btn auto-grading-close"
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+            data-testid="auto-grading-close"
           >
-            {classObj.goals.map(classGoal => (
-              <option key={classGoal} value={classGoal}>{classGoal}</option>
-            ))}
-          </select>
+            ×
+          </button>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="alternatives">Alternatives per question:</label>
-          <input
-            type="number"
-            id="alternatives"
-            data-testid="alternatives-input"
-            className="alternatives-input"
-            min={MIN_ALTERNATIVES}
-            max={MAX_ALTERNATIVES}
-            value={alternatives}
-            onChange={e => changed(setAlternatives)(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {hasGradesForGoal && (
-        <p className="auto-grading-notice" data-testid="overwrite-notice">
-          Grades already saved for “{selectedGoal}” will be replaced.
+        <p className="auto-grading-subtitle">
+          {classObj.topic} ({classObj.year}/{classObj.semester})
         </p>
-      )}
 
-      <div className="form-buttons">
-        <button
-          type="button"
-          className="submit-btn"
-          data-testid="auto-grade-submit"
-          disabled={busy !== null}
-          onClick={() => run(true)}
-        >
-          {busy === 'grade' ? 'Grading...' : 'Correct automatically'}
-        </button>
-        <button
-          type="button"
-          className="cancel-btn"
-          data-testid="auto-grade-preview"
-          disabled={busy !== null}
-          onClick={() => run(false)}
-        >
-          {busy === 'preview' ? 'Checking...' : 'Preview without saving'}
-        </button>
-      </div>
+        <div className="auto-grading-body">
+          <SheetDropzone
+            id="answerKeyFile"
+            label="Answer key"
+            file={answerKey}
+            onFile={changed(setAnswerKey)}
+            example={ANSWER_KEY_EXAMPLE}
+            testId="answer-key-upload"
+          />
 
-      {result && (
-        <div className="auto-grading-result" data-testid="auto-grading-result">
-          <div
-            role="status"
-            data-testid="auto-grading-message"
-            className={`auto-grading-message ${studentsWithWarnings > 0 ? 'with-warnings' : 'ok'}`}
-          >
-            {message(result)}
+          <SheetDropzone
+            id="responsesFile"
+            label="Student responses"
+            file={responses}
+            onFile={changed(setResponses)}
+            example={RESPONSES_EXAMPLE}
+            testId="responses-upload"
+          />
+
+          <p className="auto-grading-help">
+            The “alternativas” column of the answer key is the number of alternatives of each exam. Each answer is
+            the sum of the marked alternatives (1, 2, 4, 8, …) and the answers must be the last columns.
+          </p>
+
+          <div className="auto-grading-options">
+            <div className="form-group">
+              <label htmlFor="gradeGoal">Goal that receives the grades:</label>
+              <select
+                id="gradeGoal"
+                data-testid="grade-goal"
+                value={selectedGoal}
+                onChange={e => changed(setGoal)(e.target.value)}
+              >
+                {classObj.goals.map(classGoal => (
+                  <option key={classGoal} value={classGoal}>{classGoal}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {result.warnings.map(warning => (
-            <div key={warning} className="auto-grading-alert" data-testid="auto-grading-warning">{warning}</div>
-          ))}
-
-          {result.notInClass.length > 0 && (
-            <div className="auto-grading-alert" data-testid="not-in-class">
-              Not enrolled in this class, so no grade was saved:{' '}
-              {result.notInClass.map(student => `${student.studentName || 'Unnamed'} (${student.studentId})`).join(', ')}
-            </div>
+          {hasGradesForGoal && (
+            <p className="auto-grading-notice" data-testid="overwrite-notice">
+              Grades already saved for “{selectedGoal}” will be replaced.
+            </p>
           )}
 
-          <table className="ranking-table" data-testid="ranking-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Student</th>
-                <th>Exam</th>
-                <th>Score</th>
-                <th>Grade ({result.goal})</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.ranking.map(student => (
-                <tr key={student.studentId} data-testid={`ranking-row-${student.studentId}`}>
-                  <td data-testid="ranking-rank">{student.rank}</td>
-                  <td data-testid="ranking-name">{student.studentName}</td>
-                  <td>{student.examNumber}</td>
-                  <td data-testid="ranking-percentage">{student.percentage}%</td>
-                  <td data-testid="ranking-grade">{formatGrade(student.grade)}</td>
-                  <td>
-                    {student.warnings.length > 0 && (
-                      <span className="warning-badge" data-testid="student-warnings">
-                        ⚠ {student.warnings.length} invalid
-                      </span>
-                    )}
-                    <details data-testid="student-details">
-                      <summary>Questions</summary>
-                      <ul>
-                        {student.questionResults.map((question, index) => (
-                          <li key={question.questionIndex} className={question.answer.kind === 'invalid' ? 'invalid-answer' : ''}>
-                            {describeQuestion(student, index)}
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  </td>
-                </tr>
+          <div className="form-buttons">
+            <button
+              type="button"
+              className="submit-btn"
+              data-testid="auto-grade-submit"
+              disabled={busy !== null}
+              onClick={() => run(true)}
+            >
+              {busy === 'grade' ? 'Grading...' : 'Correct automatically'}
+            </button>
+            <button
+              type="button"
+              className="cancel-btn"
+              data-testid="auto-grade-preview"
+              disabled={busy !== null}
+              onClick={() => run(false)}
+            >
+              {busy === 'preview' ? 'Checking...' : 'Preview without saving'}
+            </button>
+          </div>
+
+          {result && (
+            <div className="auto-grading-result" data-testid="auto-grading-result">
+              <div
+                role="status"
+                data-testid="auto-grading-message"
+                className={`auto-grading-message ${studentsWithWarnings > 0 ? 'with-warnings' : 'ok'}`}
+              >
+                {message(result)}
+              </div>
+
+              {result.warnings.map(warning => (
+                <div key={warning} className="auto-grading-alert" data-testid="auto-grading-warning">{warning}</div>
               ))}
-            </tbody>
-          </table>
+
+              {result.notInClass.length > 0 && (
+                <div className="auto-grading-alert" data-testid="not-in-class">
+                  Not enrolled in this class, so no grade was saved:{' '}
+                  {result.notInClass.map(student => `${student.studentName || 'Unnamed'} (${student.studentId})`).join(', ')}
+                </div>
+              )}
+
+              <div className="ranking-scroll">
+                <table className="ranking-table" data-testid="ranking-table">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Student</th>
+                      <th>Exam</th>
+                      <th>Score</th>
+                      <th>Grade ({result.goal})</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.ranking.map(student => (
+                      <tr key={student.studentId} data-testid={`ranking-row-${student.studentId}`}>
+                        <td data-testid="ranking-rank">{student.rank}</td>
+                        <td data-testid="ranking-name">{student.studentName}</td>
+                        <td>{student.examNumber}</td>
+                        <td data-testid="ranking-percentage">{student.percentage}%</td>
+                        <td data-testid="ranking-grade">{formatGrade(student.grade)}</td>
+                        <td>
+                          {student.warnings.length > 0 && (
+                            <span className="warning-badge" data-testid="student-warnings">
+                              ⚠ {student.warnings.length} invalid
+                            </span>
+                          )}
+                          <details data-testid="student-details">
+                            <summary>Questions ({student.alternatives} alternatives each)</summary>
+                            <ul>
+                              {student.questionResults.map((question, index) => (
+                                <li key={question.questionIndex} className={question.answer.kind === 'invalid' ? 'invalid-answer' : ''}>
+                                  {describeQuestion(student, index)}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </section>
+      </div>
+    </div>
   );
 };
 

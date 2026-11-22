@@ -12,7 +12,7 @@ interface GoalsEditorProps {
 const sameGoal = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /** Chips with the goals of a class, to remove, and a field to add others. A class needs at least one. */
-const GoalsEditor: React.FC<GoalsEditorProps> = ({ goals, onChange, disabled = false }) => {
+export const GoalsEditor: React.FC<GoalsEditorProps> = ({ goals, onChange, disabled = false }) => {
   const [draft, setDraft] = useState('');
 
   const trimmed = draft.trim();
