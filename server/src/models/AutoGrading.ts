@@ -140,7 +140,7 @@ const toPercentage = (hits: number, total: number): number =>
 /** An invalid cell as shown in messages, with the reason when it is a number that is too large. */
 function describeInvalid(raw: string, alternatives: number): string {
   if (raw === '') return 'vazia';
-  return /^\d+$/.test(raw) ? `${raw}; o máximo com ${alternatives} alternativas é ${maxValidAnswer(alternatives)}` : raw;
+  return /^\d+$/.test(raw) ? `${raw}; the maximum with ${alternatives} alternatives is ${maxValidAnswer(alternatives)}` : raw;
 }
 
 interface ExamKey {
@@ -155,10 +155,10 @@ interface ExamKey {
 export function validateGradingInput({ keys, responses }: GradingInput): GradingError[] {
   const errors: GradingError[] = [];
   if (keys.length === 0) {
-    errors.push({ code: 'NO_ANSWER_KEYS', message: 'A planilha de gabaritos não possui nenhum gabarito' });
+    errors.push({ code: 'NO_ANSWER_KEYS', message: 'The answer key spreadsheet has no answer keys' });
   }
   if (responses.length === 0) {
-    errors.push({ code: 'NO_RESPONSES', message: 'A planilha de respostas não possui nenhuma resposta' });
+    errors.push({ code: 'NO_RESPONSES', message: 'The responses spreadsheet has no responses' });
   }
 
   const knownExams = new Set<string>();
@@ -175,13 +175,13 @@ export function validateGradingInput({ keys, responses }: GradingInput): Grading
     if (alternatives === undefined) {
       errors.push({
         code: 'INVALID_ALTERNATIVES',
-        message: `Prova ${exam}: número de alternativas inválido (${String(key.alternatives ?? '').trim() || 'vazio'}); use um inteiro de ${MIN_ALTERNATIVES} a ${MAX_ALTERNATIVES}`
+        message: `Exam ${exam}: invalid number of alternatives (${String(key.alternatives ?? '').trim() || 'empty'}); use an integer from ${MIN_ALTERNATIVES} to ${MAX_ALTERNATIVES}`
       });
       continue;
     }
 
     if (key.answers.length === 0) {
-      errors.push({ code: 'INVALID_ANSWER_KEY', message: `O gabarito da prova ${exam} não possui questões` });
+      errors.push({ code: 'INVALID_ANSWER_KEY', message: `The answer key of exam ${exam} has no questions` });
       continue;
     }
     let usable = true;
@@ -191,7 +191,7 @@ export function validateGradingInput({ keys, responses }: GradingInput): Grading
         usable = false;
         errors.push({
           code: 'INVALID_ANSWER_KEY',
-          message: `Gabarito da prova ${exam}, questão ${index + 1}: resposta inválida (${describeInvalid(parsed.raw, alternatives)})`
+          message: `Answer key of exam ${exam}, question ${index + 1}: invalid answer (${describeInvalid(parsed.raw, alternatives)})`
         });
       }
     });
@@ -206,7 +206,7 @@ export function validateGradingInput({ keys, responses }: GradingInput): Grading
     if (!knownExams.has(exam)) {
       if (!reportedMissing.has(exam)) {
         reportedMissing.add(exam);
-        errors.push({ code: 'EXAM_NOT_IN_ANSWER_KEY', message: `A prova ${exam} não existe no gabarito` });
+        errors.push({ code: 'EXAM_NOT_IN_ANSWER_KEY', message: `Exam ${exam} does not exist in the answer key` });
       }
       continue;
     }
@@ -214,7 +214,7 @@ export function validateGradingInput({ keys, responses }: GradingInput): Grading
     if (expected !== undefined && response.answers.length !== expected) {
       errors.push({
         code: 'ANSWER_COUNT_MISMATCH',
-        message: `${response.studentName || response.studentId}: ${response.answers.length} respostas, mas o gabarito da prova ${exam} tem ${expected} questões`
+        message: `${response.studentName || response.studentId}: ${response.answers.length} answers, but the answer key of exam ${exam} has ${expected} questions`
       });
     }
   }
@@ -233,7 +233,7 @@ function gradeStudent(response: StudentResponseEntry, exam: ExamKey): GradingRes
     if (answer.kind === 'answer') {
       hits = matchingAlternatives(key, answer.value, alternatives);
     } else {
-      warnings.push(`Questão ${index + 1}: resposta inválida (${describeInvalid(answer.raw, alternatives)})`);
+      warnings.push(`Question ${index + 1}: invalid answer (${describeInvalid(answer.raw, alternatives)})`);
     }
     totalHits += hits;
     return {
@@ -288,7 +288,7 @@ export function gradeExam(input: GradingInput): GradingOutput {
   for (const response of input.responses) {
     const student = cleanCPF(response.studentId.trim());
     if (lastResponseOf.has(student)) {
-      warnings.push(`${response.studentName || response.studentId} enviou mais de uma resposta: a última foi considerada`);
+      warnings.push(`${response.studentName || response.studentId} submitted more than once: the last submission was used`);
     }
     lastResponseOf.set(student, response);
   }

@@ -18,17 +18,9 @@ type UploadedFiles = { [field: string]: Express.Multer.File[] };
 /**
  * Routes for correcting exams automatically from the answer key and the
  * students' responses sheets. Mounted at /api/classes.
- *
- * Both endpoints take multipart/form-data with the files `answerKey` and
- * `responses` (CSV) and the field `goal` (the class goal that receives the
- * grades). The number of alternatives of each exam is a column of the answer
- * key sheet:
- *
+ * *
  * - POST /api/classes/:classId/auto-grade/preview  grades and ranks, saves nothing
  * - POST /api/classes/:classId/auto-grade          the same, and saves the grades
- *
- * This file only checks that the request is well formed. The rules about the
- * content of the exam sheets live in AutoGrading.ts.
  *
  * @param classes the class collection to operate on
  * @param onStateChanged called after every successful modification
@@ -42,7 +34,7 @@ export function gradeImportRoutes(classes: Classes, onStateChanged: () => void):
   // Reports upload problems (e.g. a file that is too large) as 400, not 500
   const receiveFiles: RequestHandler = (req, res, next) => {
     upload(req, res, error => {
-      next(error instanceof multer.MulterError ? badRequest(`Falha no envio dos arquivos: ${error.message}`) : error);
+      next(error instanceof multer.MulterError ? badRequest(`Failed to upload the files: ${error.message}`) : error);
     });
   };
 
@@ -61,17 +53,17 @@ export function gradeImportRoutes(classes: Classes, onStateChanged: () => void):
     const answerKeyFile = files.answerKey?.[0];
     const responsesFile = files.responses?.[0];
     if (!answerKeyFile || !responsesFile) {
-      throw badRequest('Envie a planilha de gabaritos (answerKey) e a de respostas (responses)');
+      throw badRequest('Send the answer key spreadsheet (answerKey) and the responses spreadsheet (responses)');
     }
     for (const file of [answerKeyFile, responsesFile]) {
       if (path.extname(file.originalname).toLowerCase() !== '.csv') {
-        throw badRequest(`Formato inválido: "${file.originalname}" não é um arquivo .csv`);
+        throw badRequest(`Invalid format: "${file.originalname}" is not a .csv file`);
       }
     }
 
     const { goal } = req.body ?? {};
     if (!isNonEmptyString(goal)) {
-      throw badRequest('A meta (goal) que receberá as notas é obrigatória');
+      throw badRequest('The goal that receives the grades is required');
     }
     assertClassGoal(classObj, goal);
 

@@ -91,7 +91,7 @@ const namesOf = (header: string[]): string[] => header.map(normalizeHeader);
 function requireColumn(names: string[], wanted: string, label: string): number {
   const index = names.indexOf(wanted);
   if (index < 0) {
-    throw new DomainError(`Formato inválido: coluna "${label}" ausente`);
+    throw new DomainError(`Invalid format: column "${label}" is missing`);
   }
   return index;
 }
@@ -104,14 +104,14 @@ function answerColumnsAfter(header: string[], anchor: number, anchorLabel: strin
     .map(column => column.index);
 
   if (columns.length === 0) {
-    throw new DomainError(`Formato inválido: nenhuma coluna de resposta depois de "${anchorLabel}"`);
+    throw new DomainError(`Invalid format: no answer column after "${anchorLabel}"`);
   }
   return columns;
 }
 
 function headerOf(rows: string[][]): string[] {
   if (rows.length === 0) {
-    throw new DomainError('Formato inválido: a planilha está vazia');
+    throw new DomainError('Invalid format: the spreadsheet is empty');
   }
   return rows[0];
 }
@@ -123,7 +123,7 @@ export function readAnswerKeys(rows: string[][]): AnswerKeyEntry[] {
   const examColumn = requireColumn(names, 'numero da prova', 'número da prova');
   const alternativesColumn = names.findIndex(name => name.includes('alternativa'));
   if (alternativesColumn < 0) {
-    throw new DomainError('Formato inválido: coluna "alternativas" (número de alternativas de cada prova) ausente');
+    throw new DomainError('Invalid format: column "alternativas" (number of alternatives of each exam) is missing');
   }
   const answerColumns = answerColumnsAfter(header, examColumn, 'número da prova', [alternativesColumn]);
 

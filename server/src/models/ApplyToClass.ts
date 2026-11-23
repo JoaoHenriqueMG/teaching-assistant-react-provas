@@ -35,7 +35,7 @@ export function percentageToGrade(percentage: number, gradeType: GradeType): Gra
 export function assertClassGoal(classObj: Class, goal: string): void {
   const goals = classObj.getGoals();
   if (!goals.includes(goal)) {
-    throw new DomainError(`Meta inválida: "${goal}". Use uma de: ${goals.join(', ')}`);
+    throw new DomainError(`Invalid goal: "${goal}". Use one of: ${goals.join(', ')}`);
   }
 }
 

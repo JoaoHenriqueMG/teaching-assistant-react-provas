@@ -40,7 +40,7 @@ export function autoGradingRoutes(classes: Classes, onStateChanged: () => void):
   // Reports upload problems (e.g. a file that is too large) as 400, not 500
   const receiveFiles: RequestHandler = (req, res, next) => {
     upload(req, res, error => {
-      next(error instanceof multer.MulterError ? badRequest(`Falha no envio dos arquivos: ${error.message}`) : error);
+      next(error instanceof multer.MulterError ? badRequest(`Failed to upload the files: ${error.message}`) : error);
     });
   };
 
@@ -59,23 +59,23 @@ export function autoGradingRoutes(classes: Classes, onStateChanged: () => void):
     const answerKeyFile = files.answerKey?.[0];
     const responsesFile = files.responses?.[0];
     if (!answerKeyFile || !responsesFile) {
-      throw badRequest('Envie a planilha de gabaritos (answerKey) e a de respostas (responses)');
+      throw badRequest('Send the answer key spreadsheet (answerKey) and the responses spreadsheet (responses)');
     }
     for (const file of [answerKeyFile, responsesFile]) {
       if (path.extname(file.originalname).toLowerCase() !== '.csv') {
-        throw badRequest(`Formato inválido: "${file.originalname}" não é um arquivo .csv`);
+        throw badRequest(`Invalid format: "${file.originalname}" is not a .csv file`);
       }
     }
 
     const { goal, alternatives: rawAlternatives } = req.body ?? {};
     if (!isNonEmptyString(goal)) {
-      throw badRequest('A meta (goal) que receberá as notas é obrigatória');
+      throw badRequest('The goal that receives the grades is required');
     }
     assertClassGoal(classObj, goal);
 
     const alternatives = rawAlternatives === undefined || rawAlternatives === '' ? DEFAULT_ALTERNATIVES : Number(rawAlternatives);
     if (!isValidAlternativesCount(alternatives)) {
-      throw badRequest(`O número de alternativas deve ser um inteiro entre ${MIN_ALTERNATIVES} e ${MAX_ALTERNATIVES}`);
+      throw badRequest(`The number of alternatives must be an integer from ${MIN_ALTERNATIVES} to ${MAX_ALTERNATIVES}`);
     }
 
     const output = gradeExam({
