@@ -250,7 +250,6 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
           classObj={selectedClass}
           onGraded={handleGraded}
           onClose={() => setShowAutoGrading(false)}
-          onError={onError}
         />
       )}
     </div>

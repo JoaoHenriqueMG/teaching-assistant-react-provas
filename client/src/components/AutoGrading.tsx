@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Class } from '../types/Class';
-import { AutoGradingResponse, RankedStudent } from '../types/AutoGrading';
-import { autoGradingService } from '../services/AutoGradingService';
+import { AutoGradingProblem, AutoGradingResponse, RankedStudent, Sheet } from '../types/AutoGrading';
+import { autoGradingService, problemsOf } from '../services/AutoGradingService';
 import SheetDropzone, { SheetExample } from './SheetDropzone';
 import SheetIcon from './SheetIcon';
+import AutoGradingError, { SHEET_LABELS } from './AutoGradingError';
 
 interface AutoGradingProps {
   classObj: Class;
   onGraded: (ranking: RankedStudent[]) => void; // called after the grades were saved
   onClose: () => void;
-  onError: (errorMessage: string) => void;
 }
 
 // What the professor sees, faded, before choosing each file
@@ -49,12 +49,14 @@ const describeQuestion = (student: RankedStudent, index: number): string => {
  * result without saving anything. The number of alternatives of each exam is
  * a column of the answer key sheet.
  */
-const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, onError }) => {
+const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose }) => {
   const [answerKey, setAnswerKey] = useState<File | null>(null);
   const [responses, setResponses] = useState<File | null>(null);
   const [goal, setGoal] = useState('');
   const [result, setResult] = useState<AutoGradingResponse | null>(null);
   const [busy, setBusy] = useState<'preview' | 'grade' | null>(null);
+  const [problems, setProblems] = useState<AutoGradingProblem[]>([]); // why the last correction failed
+  const [attempted, setAttempted] = useState(false); // a missing file is only pointed out after trying
 
   // Esc closes the popup
   useEffect(() => {
@@ -72,20 +74,36 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, 
     enrollment.evaluations.some(evaluation => evaluation.goal === selectedGoal)
   );
 
-  // A result shown for other files or settings would be misleading
+  // A result or an error shown for other files or settings would be misleading
   const changed = <T,>(set: (value: T) => void) => (value: T) => {
     set(value);
     setResult(null);
+    setProblems([]);
   };
 
+  // Problems found before sending, shown under each field: nothing is sent while there is one
+  const fileProblem = (file: File | null, sheet: Sheet): string | undefined => {
+    if (!file) return attempted ? `Choose the ${SHEET_LABELS[sheet].toLowerCase()} spreadsheet` : undefined;
+    if (!file.name.toLowerCase().endsWith('.csv')) return `"${file.name}" is not a .csv file`;
+    return undefined;
+  };
+  const answerKeyProblem = fileProblem(answerKey, 'answerKey');
+  const responsesProblem = fileProblem(responses, 'responses');
+  const goalProblem =
+    classObj.goals.length === 0 ? 'This class has no goals to receive the grades: add one by editing the class' : undefined;
+
+  // The server found a problem in this sheet
+  const hasProblemIn = (sheet: Sheet) => problems.some(problem => problem.sheet === sheet);
+
   const run = async (commit: boolean) => {
-    if (!answerKey || !responses) {
-      onError('Upload both the answer key and the student responses spreadsheets');
+    setAttempted(true);
+    setResult(null);
+    setProblems([]);
+    if (!answerKey || !responses || answerKeyProblem || responsesProblem || goalProblem) {
       return;
     }
 
     setBusy(commit ? 'grade' : 'preview');
-    setResult(null);
     try {
       const input = { answerKey, responses, goal: selectedGoal };
       const response = commit
@@ -96,7 +114,7 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, 
         onGraded(response.ranking);
       }
     } catch (error) {
-      onError((error as Error).message);
+      setProblems(problemsOf(error));
     } finally {
       setBusy(null);
     }
@@ -144,18 +162,22 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, 
         <div className="auto-grading-body">
           <SheetDropzone
             id="answerKeyFile"
-            label="Answer key"
+            label={SHEET_LABELS.answerKey}
             file={answerKey}
             onFile={changed(setAnswerKey)}
+            invalid={hasProblemIn('answerKey')}
+            problem={answerKeyProblem}
             example={ANSWER_KEY_EXAMPLE}
             testId="answer-key-upload"
           />
 
           <SheetDropzone
             id="responsesFile"
-            label="Student responses"
+            label={SHEET_LABELS.responses}
             file={responses}
             onFile={changed(setResponses)}
+            invalid={hasProblemIn('responses')}
+            problem={responsesProblem}
             example={RESPONSES_EXAMPLE}
             testId="responses-upload"
           />
@@ -178,6 +200,7 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, 
                   <option key={classGoal} value={classGoal}>{classGoal}</option>
                 ))}
               </select>
+              {goalProblem && <span className="sheet-problem" role="alert" data-testid="grade-goal-problem">{goalProblem}</span>}
             </div>
           </div>
 
@@ -207,6 +230,8 @@ const AutoGrading: React.FC<AutoGradingProps> = ({ classObj, onGraded, onClose, 
               {busy === 'preview' ? 'Checking...' : 'Preview without saving'}
             </button>
           </div>
+
+          {problems.length > 0 && <AutoGradingError problems={problems} />}
 
           {result && (
             <div className="auto-grading-result" data-testid="auto-grading-result">
