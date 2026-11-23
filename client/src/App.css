@@ -1386,6 +1386,21 @@ tbody tr:last-child td {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+/* After .has-file: a chosen sheet with a problem is red, not green */
+.sheet-dropzone.has-problem {
+  border-color: #b42318;
+  background: #fef3f2;
+}
+
+.sheet-problem {
+  margin-left: 1.6rem;
+  color: #b42318;
+  font-size: 0.85em;
+}
+.form-group .sheet-problem {
+  display: block;
+  margin: 0.3rem 0 0;
+}
 
 .sheet-dropzone .sheet-icon {
   flex: none;
@@ -1478,6 +1493,19 @@ tbody tr:last-child td {
 .auto-grading-notice {
   margin: 0;
   color: #7a4b00;
+}
+
+/* ---------- Failed correction ---------- */
+.auto-grading-error {
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid #b42318;
+  border-radius: 6px;
+  background: #fef3f2;
+  color: #7a271a;
+}
+.auto-grading-error ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
 }
 
 /* ---------- Result ---------- */

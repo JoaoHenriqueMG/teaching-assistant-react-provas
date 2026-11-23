@@ -11,9 +11,9 @@
  */
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3005';
 
-/** An unsuccessful response from the server. */
+/** An unsuccessful response from the server. `body` is its parsed JSON body, if any. */
 export class ApiError extends Error {
-  constructor(readonly status: number, message: string) {
+  constructor(readonly status: number, message: string, readonly body?: unknown) {
     super(message);
     this.name = 'ApiError';
   }
@@ -28,7 +28,8 @@ export class ApiError extends Error {
 export async function request<T>(path: string, failureMessage: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, init);
   if (!response.ok) {
-    throw new ApiError(response.status, await errorMessageOf(response, failureMessage));
+    const body = await jsonBodyOf(response);
+    throw new ApiError(response.status, errorMessageOf(body, response, failureMessage), body);
   }
   if (response.status === 204) {
     return undefined as T;
@@ -52,14 +53,15 @@ export const sendJson = <T>(method: 'POST' | 'PUT', path: string, body: unknown,
 export const remove = (path: string, failureMessage: string): Promise<void> =>
   request<void>(path, failureMessage, { method: 'DELETE' });
 
-async function errorMessageOf(response: Response, failureMessage: string): Promise<string> {
+async function jsonBodyOf(response: Response): Promise<unknown> {
   try {
-    const body = await response.json();
-    if (body && typeof body.error === 'string') {
-      return body.error;
-    }
+    return await response.json();
   } catch {
-    // no JSON body: use the generic message below
+    return undefined; // no JSON body
   }
-  return `${failureMessage}: ${response.statusText}`;
+}
+
+function errorMessageOf(body: unknown, response: Response, failureMessage: string): string {
+  const error = (body as { error?: unknown } | undefined)?.error;
+  return typeof error === 'string' ? error : `${failureMessage}: ${response.statusText}`;
 }

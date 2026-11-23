@@ -1,5 +1,5 @@
-import { AutoGradingRequest, AutoGradingResponse } from '../types/AutoGrading';
-import { request } from './apiClient';
+import { AutoGradingProblem, AutoGradingRequest, AutoGradingResponse, GradingErrorCode, Sheet } from '../types/AutoGrading';
+import { ApiError, request } from './apiClient';
 import { classPath } from './ClassService';
 
 const toFormData = ({ answerKey, responses, goal }: AutoGradingRequest): FormData => {
@@ -16,6 +16,40 @@ const send = (classId: string, suffix: string, input: AutoGradingRequest, failur
     method: 'POST',
     body: toFormData(input)
   });
+
+// The spreadsheet each problem found by the server is in
+const SHEET_OF_ERROR: Record<GradingErrorCode, Sheet> = {
+  NO_ANSWER_KEYS: 'answerKey',
+  DUPLICATE_EXAM_IN_ANSWER_KEY: 'answerKey',
+  INVALID_ALTERNATIVES: 'answerKey',
+  INVALID_ANSWER_KEY: 'answerKey',
+  NO_RESPONSES: 'responses',
+  EXAM_NOT_IN_ANSWER_KEY: 'responses',
+  ANSWER_COUNT_MISMATCH: 'responses'
+};
+
+type GradingErrorsBody = { errors: { code: GradingErrorCode; message: string }[] };
+
+const hasGradingErrors = (body: unknown): body is GradingErrorsBody =>
+  Array.isArray((body as Partial<GradingErrorsBody> | undefined)?.errors);
+
+/**
+ * Turns a failed correction into the problems to show, one per error the
+ * server found, each with the spreadsheet it is in when the server says so.
+ */
+export const problemsOf = (error: unknown): AutoGradingProblem[] => {
+  if (error instanceof ApiError) {
+    if (hasGradingErrors(error.body) && error.body.errors.length > 0) {
+      return error.body.errors.map(({ code, message }) => ({ message, sheet: SHEET_OF_ERROR[code] }));
+    }
+    return [{ message: error.message }];
+  }
+  if (error instanceof TypeError) {
+    // fetch rejects with a TypeError when the server cannot be reached
+    return [{ message: 'Could not reach the server. Check your connection and try again.' }];
+  }
+  return [{ message: (error as Error)?.message || 'Unexpected error' }];
+};
 
 /** Automatic correction of exams from the answer key and the responses sheets (CSV). */
 export const autoGradingService = {

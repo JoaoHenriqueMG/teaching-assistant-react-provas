@@ -44,3 +44,21 @@ export interface AutoGradingRequest {
   responses: File;
   goal: string; // a goal of the class, which receives the grades
 }
+/** The two spreadsheets sent for the correction. */
+export type Sheet = 'answerKey' | 'responses';
+
+/** Codes of the problems the server finds in the content of the spreadsheets (as in the server's GradingErrorCode). */
+export type GradingErrorCode =
+  | 'NO_ANSWER_KEYS'
+  | 'NO_RESPONSES'
+  | 'DUPLICATE_EXAM_IN_ANSWER_KEY'
+  | 'INVALID_ALTERNATIVES'
+  | 'INVALID_ANSWER_KEY'
+  | 'EXAM_NOT_IN_ANSWER_KEY'
+  | 'ANSWER_COUNT_MISMATCH';
+
+/** Something that stopped the correction: when there is one, nothing was graded or saved. */
+export interface AutoGradingProblem {
+  message: string;
+  sheet?: Sheet; // the spreadsheet to fix, when it is known
+}
