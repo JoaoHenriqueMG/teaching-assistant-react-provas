@@ -12,23 +12,29 @@ interface SheetDropzoneProps {
   file: File | null;
   onFile: (file: File | null) => void;
   example: SheetExample; // shown faded until a file is chosen
+  invalid?: boolean; // the last check found a problem in this sheet
+  problem?: string; // a problem found before sending, shown under the box
   testId?: string; // goes on the <input type="file">
 }
 
 /**
- * A rounded box with the sheet icon and a text, to choose one spreadsheet (by
- * clicking or by dropping a file). While empty it shows a faded example of
- * the format that is expected; once a file is chosen it shows the file name
- * instead.
+ * A box to choose one spreadsheet, by clicking or by dropping a file. While
+ * empty it shows a faded example of the expected format; once a file is
+ * chosen it shows the file name. It turns red when the sheet has a problem.
  */
-const SheetDropzone: React.FC<SheetDropzoneProps> = ({ id, label, file, onFile, example, testId }) => {
+const SheetDropzone: React.FC<SheetDropzoneProps> = ({ id, label, file, onFile, example, invalid, problem, testId }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const hasProblem = invalid || Boolean(problem);
+  const classes = ['sheet-dropzone', file ? 'has-file' : '', isDragging ? 'dragging' : '', hasProblem ? 'has-problem' : '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="sheet-dropzone-group">
+      <span className="sheet-dropzone-label">{label}</span>
       <label
         htmlFor={id}
-        className={`sheet-dropzone${file ? ' has-file' : ''}${isDragging ? ' dragging' : ''}`}
+        className={classes}
         onDragOver={e => {
           e.preventDefault();
           setIsDragging(true);
@@ -41,42 +47,49 @@ const SheetDropzone: React.FC<SheetDropzoneProps> = ({ id, label, file, onFile, 
           if (dropped) onFile(dropped);
         }}
       >
-        <SheetIcon size={40} />
-
-        <div className="sheet-dropzone-body">
-          <span className="sheet-dropzone-title">{label}</span>
-
-          {file ? (
-            <span className="sheet-file-name">{file.name}</span>
-          ) : (
-            <>
-              <span className="sheet-dropzone-hint">Click or drop a .csv file</span>
-              <div className="sheet-example-scroll" aria-hidden="true">
-                <table className="sheet-example">
-                  <thead>
-                    <tr>
-                      {example.header.map(title => <th key={title}>{title}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {example.rows.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+        <div className="sheet-dropzone-top">
+          <SheetIcon size={32} />
+          <div className="sheet-dropzone-text">
+            {file ? (
+              <>
+                <span className="sheet-file-name" data-testid={testId ? `${testId}-name` : undefined}>{file.name}</span>
+                <span className="sheet-dropzone-hint">Click or drop another file to replace it</span>
+              </>
+            ) : (
+              <>
+                <span className="sheet-dropzone-title">Choose a .csv file</span>
+                <span className="sheet-dropzone-hint">or drop it here</span>
+              </>
+            )}
+          </div>
         </div>
+
+        {!file && (
+          <div className="sheet-example-scroll" aria-hidden="true">
+            <table className="sheet-example">
+              <thead>
+                <tr>
+                  {example.header.map(title => <th key={title}>{title}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {example.rows.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <input
           type="file"
           id={id}
           data-testid={testId}
           className="sheet-input"
-          accept=".csv"
+          accept=".csv,text/csv"
+          aria-invalid={hasProblem || undefined}
           onChange={e => {
             onFile(e.target.files?.[0] ?? null);
             e.target.value = ''; // lets the same file be chosen again after removing it
@@ -84,8 +97,10 @@ const SheetDropzone: React.FC<SheetDropzoneProps> = ({ id, label, file, onFile, 
         />
       </label>
 
+      {problem && <span className="sheet-problem" role="alert">{problem}</span>}
+
       {file && (
-        <button type="button" className="sheet-remove" onClick={() => onFile(null)}>
+        <button className="link-btn sheet-remove" onClick={() => onFile(null)}>
           Remove file
         </button>
       )}

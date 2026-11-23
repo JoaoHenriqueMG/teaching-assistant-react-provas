@@ -348,7 +348,12 @@
         },
         {
           "studentCPF": "55555555555",
-          "evaluations": [],
+          "evaluations": [
+            {
+              "goal": "Goals 1",
+              "grade": 10
+            }
+          ],
           "averageBeforeFinalExam": null,
           "averageAfterFinalExam": null,
           "failedByAbsence": false
