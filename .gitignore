@@ -13,3 +13,4 @@ coverage/
 tmp_data/
 # macOS metadata
 .DS_Store
+server/data/test-data.json
