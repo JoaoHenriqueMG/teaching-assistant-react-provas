@@ -7,12 +7,9 @@ import { Student } from '../models/Student';
 import { Class } from '../models/Class';
 import { Evaluation } from '../models/Evaluation';
 import { AverageCalculationSpecification } from '../models/AverageCalculationSpecification';
-<<<<<<< HEAD
 import { callbackify } from 'util';
-=======
 import { ExamSubmission, MAX_ALLOWED_SUM } from '../models/ExamSubmission';
 import { ExamSubmissionSet } from '../models/ExamSubmissionSet';
->>>>>>> origin/develop
 
 /**
  * Keeps the application state in a single JSON file.
