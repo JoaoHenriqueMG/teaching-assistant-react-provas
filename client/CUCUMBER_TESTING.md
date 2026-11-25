@@ -95,6 +95,27 @@ The tests follow the **AAA pattern** (Arrange, Act, Assert) with proper cleanup:
 - **Name**: `Test Student`
 - **Email**: `test.student@email.com`
 
+### Automatic Correction (auto_grade) Data
+- **Features**: `auto_grade_gui.feature` (`@gui`) and `auto_grade_service.feature` (`@service`, API only, no browser)
+- **Steps**: `auto-grade-common-steps.ts` (Background and checks shared by both), `auto-grade-gui-steps.ts`, `auto-grade-service-steps.ts`
+- **Helpers**: `src/test-support/autoGradeSheets.ts` builds the CSV spreadsheets from the scenario tables;
+  `src/test-support/autoGradeScenario.ts` creates and removes the class and students through the API
+- Each scenario creates the class "Engenharia de Software e Sistemas 2026.2" and its students, and deletes them at the end
+
+These scenarios use CPFs that may also exist in the development data, so the server must use a separate
+data file. Start the server for the tests with:
+
+```bash
+# From the server directory (or `npm run server:test` from the repository root)
+npm run dev:test
+```
+
+It uses `data/test-data.json` (created on the first change, ignored by git). Another file can be chosen with
+the `DATA_FILE` environment variable (relative to the `server` folder).
+
+If the server is running with the development data, the scenarios stop before deleting any student that
+is not test data.
+
 ## 🎯 Browser Automation
 
 The tests use Puppeteer for browser automation:
@@ -157,6 +178,8 @@ Error: You're calling functions on an instance of Cucumber that isn't running
 
 ### Browser Issues
 **Solution**: Install latest Chrome/Chromium or run headless mode
+If Puppeteer cannot find its own Chrome, point it to the installed one:
+`PUPPETEER_EXECUTABLE_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"`
 
 ### Module Resolution Issues
 **Solution**: Use direct imports instead of relative imports for better compatibility
