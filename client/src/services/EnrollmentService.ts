@@ -14,6 +14,6 @@ export const enrollmentService = {
     get(`${classPath(classId)}/enrollments`, 'Failed to fetch enrollments'),
 
   /** Sets the grade of a goal; an empty grade removes the evaluation. */
-  updateEvaluation: (classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment> =>
+  updateEvaluation: (classId: string, studentCPF: string, goal: string, grade: string | number): Promise<Enrollment> =>
     sendJson('PUT', `${classPath(classId)}/enrollments/${studentCPF}/evaluation`, { goal, grade }, 'Failed to update evaluation')
 };

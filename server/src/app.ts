@@ -12,6 +12,7 @@ import { gradeImportRoutes } from './routes/gradeImport';
 import { errorHandler } from './routes/HttpError';
 import { QuestionBank } from './models/QuestionBank';
 import { questionRoutes } from './routes/questions';
+import { autoGradingRoutes } from './routes/autoGrading';
 import { ExamBank } from './models/ExamBank';
 import { examRoutes } from './routes/exams';
 import { examSubmissionRoutes } from './routes/examSubmissions';
@@ -58,7 +59,8 @@ export function createApp({
   app.use('/api/classes', classRoutes(classes, onStateChanged));
   app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
   app.use('/api/classes', reportRoutes(classes));
-  app.use('/api/classes', gradeImportRoutes());
+  app.use('/api/classes', gradeImportRoutes(classes, onStateChanged));
+  app.use('/api/classes', autoGradingRoutes(classes, onStateChanged));
   app.use('/api/questions', questionRoutes(questionBank, onQuestionsChanged));
   app.use('/api/exams', examRoutes(examBank, onExamsChanged));
   app.use('/api/exam-submissions', examSubmissionRoutes(examSubmissions, students, onStateChanged));

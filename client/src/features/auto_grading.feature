@@ -1,7 +1,7 @@
-Feature: Correção automática e atualização de notas de cada aluno
-As a Usuário
-I Want poder corrigir automaticamente todas as provas da turma com gabarito cadastrado
-So that todas as notas possam ser entregues de forma eficiente e segura
+Feature: Automatic correction and update of each student's grades
+As a Professor
+I Want to send the answer keys and the students' responses
+So that the exams are corrected automatically and the students' grades are made available
 
 # Regras de negócio adotadas nestes cenários:
 # - Cada questão tem n alternativas, valendo 1, 2, 4, 8, ... (potências de 2). A resposta é a soma das alternativas marcadas.
@@ -11,242 +11,277 @@ So that todas as notas possam ser entregues de forma eficiente e segura
 # - Reexecutar a correção sobrescreve as notas existentes.
 
 Background:
-    Given todas as provas têm 5 alternativas
-    And a planilha de gabarito tem as colunas "número da prova", "questão 1", "questão 2" e assim por diante
-    And a planilha de respostas do aluno tem as colunas "Carimbo de data/hora", "nome", "e-mail", "CPF", "número da prova", "questão 1", "questão 2" e assim por diante 
+    Given all exams have 5 alternatives
+    And the answer key spreadsheet has the columns "número da prova", "questão 1", "questão 2" and so on
+    And the student responses spreadsheet has the columns "Carimbo de data/hora", "nome", "e-mail", "CPF", "número da prova", "questão 1", "questão 2" and so on 
     #formato google forms
 
 @gui
-Scenario: Professor corrige as notas de uma turma com gabarito cadastrado
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá uma mensagem informando que as notas foram cadastradas
-    And eu verei "Maria" no rank #1 com a nota 100%
-    And eu verei "Pedro" no rank #2 com a nota 87%
+Scenario: Professor corrects the grades of a class with a registered answer key
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+        | 02   | 9,15,3  |
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,3,15  |
+        | Maria   | 02   | 9,15,3  |
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then a message will appear saying that the grades were saved
+    And I will see "Maria" at rank #1 with the grade 100%
+    And I will see "Pedro" at rank #2 with the grade 87%
 
 @gui
-Scenario Outline: Professor tenta corrigir notas com planilha de gabarito malformada
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    When eu enviar uma planilha de gabaritos com o problema "<problema>"
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá a mensagem de formato inválido
-    And nenhuma nota será cadastrada para a turma
+Scenario Outline: Professor tries to correct grades with a malformed answer key spreadsheet
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    When I send an answer keys spreadsheet with the problem "<problem>"
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then the invalid format message will appear
+    And no grade will be saved for the class
 
     Examples:
-        | problema                            |
-        | coluna de número da prova ausente   |
-        | extensão de arquivo inválida (.txt) |
-        | planilha vazia (apenas cabeçalho)   |
+        | problem                         |
+        | missing exam number column      |
+        | invalid file extension (.txt)   |
+        | empty spreadsheet (header only) |
 
 @gui
-Scenario Outline: Professor tenta corrigir as notas de uma turma com a planilha de respostas possuindo formatação errada
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com o "<problema>"
-    And solicitar a correção automática
-    Then aparecerá a mensagem de formato inválido
-    And nenhuma nota será cadastrada para a turma
+Scenario Outline: Professor tries to correct the grades of a class with a wrongly formatted responses spreadsheet
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the "<problem>"
+    And request the automatic correction
+    Then the invalid format message will appear
+    And no grade will be saved for the class
 
     Examples:
-        | problema                                         |
-        | Número de prova que não existe no gabarito       |
-        | extensão de arquivo inválida (.txt)              |
-        | questão 3 faltando (numero de colunas invalido)  |
-        | coluna de identificador do aluno ausente         |
-        | planilha vazia (apenas cabeçalho)                |
+        | problem                                           |
+        | Exam number that does not exist in the answer key |
+        | invalid file extension (.txt)                     |
+        | question 3 missing (invalid number of columns)    |
+        | missing student identifier column                 |
+        | empty spreadsheet (header only)                   |
 
 @gui
-Scenario Outline: Professor tenta corrigir sem enviar todas as planilhas necessárias
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o envio de planilhas está na situação "<situação>"
-    When solicitar a correção automática
-    Then aparecerá uma mensagem solicitando o envio das planilhas
-    And nenhuma nota será cadastrada para a turma
+Scenario Outline: Professor tries to correct without sending all the required spreadsheets
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the spreadsheet upload is in the situation "<situation>"
+    When I request the automatic correction
+    Then a message asking for the spreadsheets will appear
+    And no grade will be saved for the class
 
     Examples:
-        | situação                   |
-        | somente gabaritos enviados |
-        | somente respostas enviadas |
-        | nenhuma planilha enviada   |
+        | situation             |
+        | only answer keys sent |
+        | only responses sent   |
+        | no spreadsheet sent   |
 
 @gui
-Scenario: Professor corrige notas de uma turma e um aluno preenche uma resposta inválida
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "B" e "40"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá uma mensagem informando que as notas foram cadastradas com alertas de respostas inválidas
-    And eu verei "Maria" no rank #1 com a nota 100%
-    And eu verei "Pedro" no rank #2 com a nota 33%
-    And o sistema indicará, no detalhamento, que as questões 2 e 3 do aluno "Pedro" possuem respostas inválidas
-    And o sistema não indicará alertas para a aluna "Maria"
+Scenario: Professor corrects the grades of a class and a student fills in an invalid answer
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+        | 02   | 9,15,3  |
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,B,40  |
+        | Maria   | 02   | 9,15,3  |
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then a message will appear saying that the grades were saved with invalid answer alerts
+    And I will see "Maria" at rank #1 with the grade 100%
+    And I will see "Pedro" at rank #2 with the grade 33%
+    And the system will indicate, in the details, that questions 2 and 3 of the student "Pedro" have invalid answers
+    And the system will not show alerts for the student "Maria"
+
+'''@gui
+Scenario: Professor corrects grades and a student hands in a blank exam
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    And the following students answered the exams:
+        | student | exam | answers                 |
+        | Ana     | 01   | (blank),(blank),(blank) |
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then a message will appear saying that the grades were saved
+    And I will see "Ana" with the grade 0%
+'''
 
 @gui
-Scenario: Professor corrige notas e um aluno entrega a prova em branco
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And a aluna "Ana" entregou a "prova 01" com todas as questões em branco
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá uma mensagem informando que as notas foram cadastradas
-    And eu verei "Ana" com a nota 0%
+Scenario: Professor corrects grades and the spreadsheet contains a student who is not in the class
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,3,15  |
+    And the responses spreadsheet contains a student whose identifier is not in the class
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then a message will appear saying that the grades were saved with a student not found in the class alert
+    And I will see "Pedro" with the grade 87%
+    And no grade will be saved for the student who is not in the class
 
 @gui
-Scenario: Professor corrige notas e a planilha contém um aluno que não pertence à turma
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
-    And a planilha de respostas contém um aluno com identificador que não pertence à turma
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá uma mensagem informando que as notas foram cadastradas com alerta de aluno não encontrado na turma
-    And eu verei "Pedro" com a nota 87%
-    And nenhuma nota será cadastrada para o aluno que não pertence à turma
-
-@gui
-Scenario: Professor corrige novamente uma turma que já possui notas
-    Given eu estou na página de notas da turma "Engenharia de Software e Sistemas 2026.2"
-    And o aluno "Pedro" já possui nota 40% na "prova 01"
-    And o gabarito da prova "01" é "3", "9" e "15"
-    And o gabarito da prova "02" é "9", "15" e "3"
-    And o aluno "Pedro" marcou a "prova 01" com as respostas "3", "3" e "15"
-    And a aluna "Maria" marcou a "prova 02" com as respostas "9", "15" e "3"
-    When eu enviar a planilha com os gabaritos com a formatação correta
-    And eu enviar a planilha de respostas com a formatação correta
-    And solicitar a correção automática
-    Then aparecerá uma mensagem informando que as notas foram cadastradas
-    And eu verei "Maria" no rank #1 com a nota 100%
-    And eu verei "Pedro" no rank #2 com a nota 87%
-    And o aluno "Pedro" não terá mais de uma nota para a "prova 01"
+Scenario: Professor corrects again a class that already has grades
+    Given I am on the grades page of the class "Engenharia de Software e Sistemas 2026.2"
+    And the student "Pedro" already has the grade 40% on exam "01"
+    And the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+        | 02   | 9,15,3  |
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,3,15  |
+        | Maria   | 02   | 9,15,3  |
+    When I send the answer keys spreadsheet with the correct format
+    And I send the responses spreadsheet with the correct format
+    And request the automatic correction
+    Then a message will appear saying that the grades were saved
+    And I will see "Maria" at rank #1 with the grade 100%
+    And I will see "Pedro" at rank #2 with the grade 87%
+    And the student "Pedro" will not have more than one grade for exam "01"
 
 @service
-Scenario Outline: Serviço calcula a nota do aluno a partir do gabarito e das respostas marcadas
-    Given que o gabarito da prova "<prova>" é "<gabarito>"
-    And o aluno "<aluno>" marcou a prova "<prova>" com as respostas "<respostas>"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará a nota do aluno "<aluno>" como "<nota>"
+Scenario Outline: Service calculates the student's grade from the answer key and the marked answers
+    Given the answer key of exam "<exam>" is "<answer key>"
+    And the student "<student>" marked exam "<exam>" with the answers "<answers>"
+    When I call the automatic correction service
+    Then the service will return the grade of the student "<student>" as "<grade>"
 
     Examples:
-        | aluno | prova | gabarito | respostas  | nota |
-        | Pedro | 01    | 3, 9, 15 | 3, 3, 15   | 87%  |
-        | Maria | 02    | 9, 15, 3 | 9, 15, 3   | 100% |
-        | Carla | 03    | 3, 15, 9 | 1, 1, 1    | 67%  |
-        | Bruno | 04    | 9, 3, 15 | 22, 28, 16 | 0%   |
-        | Davi  | 05    | 15, 9, 3 | 9, 3, 15   | 60%  |
-
-    # "(branco)" representa uma célula vazia na planilha de respostas.
-    Examples: Casos limites e exceções
-        | aluno | prova | gabarito | respostas                    | nota |
-        # Deixou a última em branco
-        | Joao  | 01    | 3, 9, 15 | 3, 9, (branco)               | 67%  |
-        # Entregou tudo em branco
-        | Ana   | 01    | 3, 9, 15 | (branco), (branco), (branco) | 0%   |
+        | student | exam | answer key | answers    | grade |
+        | Pedro   | 01   | 3, 9, 15   | 3, 3, 15   | 87%   |
+        | Maria   | 02   | 9, 15, 3   | 9, 15, 3   | 100%  |
+        | Carla   | 03   | 3, 15, 9   | 1, 1, 1    | 67%   |
+        | Bruno   | 04   | 9, 3, 15   | 22, 28, 16 | 0%    |
+        | Davi    | 05   | 15, 9, 3   | 9, 3, 15   | 60%   |
 
 @service
-Scenario Outline: Serviço aplica crédito parcial por alternativa em uma questão
-    Given que o gabarito da prova "01" é "<gabarito>"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<resposta>"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará a nota do aluno "Pedro" como "<nota>"
+Scenario Outline: Service applies partial credit per alternative in a question
+    Given the answer key of exam "01" is "<answer key>"
+    And the student "Pedro" marked exam "01" with the answers "<answer>"
+    When I call the automatic correction service
+    Then the service will return the grade of the student "Pedro" as "<grade>"
 
-    Examples: Acerto total
-        | gabarito | resposta | nota |
-        | 4        | 4        | 100% |
-        | 9        | 9        | 100% |
-        | 31       | 31       | 100% |
-        | 0        | 0        | 100% |
+    Examples: Full credit
+        | answer key | answer | grade |
+        | 4          | 4      | 100%  |
+        | 9          | 9      | 100%  |
+        | 31         | 31     | 100%  |
+        | 0          | 0      | 100%  |
 
-    Examples: Crédito parcial
-        | gabarito | resposta | nota |
-        | 9        | 8        | 80%  |
-        | 9        | 11       | 80%  |
-        | 9        | 4        | 40%  |
-        | 9        | 0        | 60%  |
-        | 0        | 4        | 80%  |
-        | 9        | 22       | 0%   |
+    Examples: Partial credit
+        | answer key | answer | grade |
+        | 9          | 8      | 80%   |
+        | 9          | 11     | 80%   |
+        | 9          | 4      | 40%   |
+        | 9          | 0      | 60%   |
+        | 0          | 4      | 80%   |
+        | 9          | 22     | 0%    |
 
 @service
-Scenario Outline: Serviço trata respostas inválidas ou em branco como erro na questão
-    Given que o gabarito da prova "01" é "9"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<resposta>"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará a nota do aluno "Pedro" como "0%"
-    And o serviço indicará "<situação>" para a questão 1
+Scenario Outline: Service treats invalid or blank answers as wrong in the question
+    Given the answer key of exam "01" is "9"
+    And the student "Pedro" marked exam "01" with the answers "<answer>"
+    When I call the automatic correction service
+    Then the service will return the grade of the student "Pedro" as "0%"
+    And the service will indicate "<situation>" for question 1
 
     Examples:
-        | resposta | situação           |
-        | B        | resposta inválida  |
-        | abc      | resposta inválida  |
-        | -1       | resposta inválida  |
-        | 2.5      | resposta inválida  |
-        | 32       | resposta inválida  |
-        | 40       | resposta inválida  |
-        | (branco) | resposta em branco |
+        | answer | situation      |
+        | B      | invalid answer |
+        | abc    | invalid answer |
+        | -1     | invalid answer |
+        | 2.5    | invalid answer |
+        | 32     | invalid answer |
+        | 40     | invalid answer |
 
 @service
-Scenario Outline: Serviço arredonda a nota para um número inteiro
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<respostas>"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará a nota do aluno "Pedro" como "<nota>"
+Scenario Outline: Service rounds the grade to an integer
+    Given the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    And the following students answered the exams:
+        | student | exam | answers     |
+        | Pedro   | 01   | <respostas> |
+    When I call the automatic correction service
+    Then the service will return the grade of the student "Pedro" as "<grade>"
 
     Examples:
-        | respostas | nota |
+        | answers   | grade |
         # 86,67 arredondado para cima
-        | 3, 3, 15  | 87%  |
+        | 3, 3, 15  | 87%   |
         # 93,33 arredondado para baixo
-        | 3, 9, 7   | 93%  |
+        | 3, 9, 7   | 93%   |
 
 @service
-Scenario: Serviço tenta corrigir prova que não existe no gabarito
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And apenas existem as provas "01", "02", "03" no gabarito
-    And o aluno "Pedro" marcou a prova "05" com as respostas "3, 9, 15"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará erro de prova inexistente no gabarito
-    And nenhuma nota será cadastrada
+Scenario: Service tries to correct an exam that does not exist in the answer key
+    Given the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+        | 02   | 9,15,3  |
+        | 03   | 15,9,15 |                
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 05   | 3,9,15  |
+    When I call the automatic correction service
+    Then the service will return an exam not in the answer key error
+    And no grade will be saved
 
 @service
-Scenario Outline: Serviço tenta corrigir com número de respostas diferente do número de questões (colunas na planilha)
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "<respostas>"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará erro de quantidade de respostas incompatível com o gabarito
-    And nenhuma nota será cadastrada
+Scenario Outline: Service tries to correct with a number of answers different from the number of questions (columns in the spreadsheet)
+    Given the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    And the following students answered the exams:
+        | student | exam | answers     |
+        | Pedro   | 01   | <respostas> |
+    When I call the automatic correction service
+    Then the service will return an answer count does not match the answer key error
+    And no grade will be saved
 
     Examples:
-        | respostas   |
+        | answers     |
         | 3, 9        |
         | 3, 9, 15, 1 |
 
 @service
-Scenario: Serviço tenta corrigir com gabarito sem questões
-    Given que o gabarito da prova "01" não possui nenhuma questão
-    And o aluno "Pedro" marcou a prova "01" sem respostas
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará erro de gabarito inválido
-    And nenhuma nota será cadastrada
+Scenario: Service tries to correct with an answer key without questions
+    Given the following answer keys were sent:
+        | exam | answers |
+        | 01   |         |
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,9,15  |
+    When I call the automatic correction service
+    Then the service will return an invalid answer key error
+    And no grade will be saved
 
 @service
-Scenario: Serviço sobrescreve a nota existente ao corrigir novamente
-    Given que o gabarito da prova "01" é "3, 9, 15"
-    And o aluno "Pedro" já possui nota "40%" na prova "01"
-    And o aluno "Pedro" marcou a prova "01" com as respostas "3, 3, 15"
-    When eu chamar o serviço de correção automática
-    Then o serviço retornará a nota do aluno "Pedro" como "87%"
-    And o aluno "Pedro" terá apenas uma nota para a prova "01"
+Scenario: Service overwrites the existing grade when correcting again
+    Given the following answer keys were sent:
+        | exam | answers |
+        | 01   | 3,9,15  |
+    And the student "Pedro" already has the grade "40%" on exam "01"
+    And the following students answered the exams:
+        | student | exam | answers |
+        | Pedro   | 01   | 3,3,15  |
+    When I call the automatic correction service
+    Then the service will return the grade of the student "Pedro" as "87%"
+    And the student "Pedro" will have only one grade for exam "01"
 

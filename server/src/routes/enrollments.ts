@@ -4,7 +4,7 @@ import { Class } from '../models/Class';
 import { Enrollment } from '../models/Enrollment';
 import { StudentSet } from '../models/StudentSet';
 import { cleanCPF } from '../models/CPF';
-import { isGrade } from '../models/Evaluation';
+import { isConceptGrade, isNumericGrade } from '../models/Evaluation';
 import { badRequest, notFound } from './HttpError';
 import { isNonEmptyString } from './validation';
 
@@ -88,15 +88,28 @@ export function enrollmentRoutes(classes: Classes, students: StudentSet, onState
     if (!isNonEmptyString(goal)) {
       throw badRequest('Goal must be a non-empty string');
     }
+
+    // after
+    const classObj = findClass(req.params.classId);
     const enrollment = findEnrollment(req.params.classId, req.params.studentCPF);
+
+    if (!enrollment) {
+      throw notFound('Enrollment not found');
+    }
+
     if (grade === '' || grade === null || grade === undefined) {
       enrollment.removeEvaluation(goal);
     } else {
-      if (!isGrade(grade)) {
+      if (classObj.getGradeType() === 'concept' && !isConceptGrade(grade)) {
         throw badRequest('Invalid grade. Must be MANA, MPA, or MA');
       }
+      if (classObj.getGradeType() === 'numeric' && !isNumericGrade(grade)) {
+        throw badRequest('Invalid grade. Must be a number between 0 and 10');
+      }
+
       enrollment.addOrUpdateEvaluation(goal, grade);
     }
+
     onStateChanged();
     res.json(enrollment.toJSON());
   });
