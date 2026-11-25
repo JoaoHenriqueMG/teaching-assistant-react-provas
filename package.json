@@ -1,0 +1,35 @@
+{
+  "name": "teaching-assistant-app",
+  "version": "1.0.0",
+  "description": "Teaching assistant: a full-stack TypeScript example (React client, Express server) for the Software Engineering course",
+  "private": true,
+  "scripts": {
+    "setup": "npm install",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm run dev --prefix server",
+    "client": "npm start --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "npm test --prefix server",
+    "test:client": "CI=true npm test --prefix client",
+    "test:cucumber": "npm run test:cucumber --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "react",
+    "nodejs",
+    "typescript",
+    "express",
+    "student-management",
+    "fullstack"
+  ],
+  "author": "Paulo",
+  "license": "ISC",
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}

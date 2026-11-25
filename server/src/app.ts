@@ -1,0 +1,56 @@
+import express, { Express } from 'express';
+import cors from 'cors';
+import { StudentSet } from './models/StudentSet';
+import { Classes } from './models/Classes';
+import { AppStateRepository } from './persistence/AppStateRepository';
+import { studentRoutes } from './routes/students';
+import { classRoutes } from './routes/classes';
+import { enrollmentRoutes } from './routes/enrollments';
+import { reportRoutes } from './routes/reports';
+import { gradeImportRoutes } from './routes/gradeImport';
+import { examRoutes } from './routes/exams';
+import { examPdfRoutes } from './routes/examPdfs';
+import { questionRoutes } from './routes/questions';
+import { QuestionBank } from './models/QuestionBank';
+import { ExamBank } from './models/ExamBank';
+import { errorHandler } from './routes/HttpError';
+
+/** Everything the HTTP application needs, injected by the composition root. */
+export interface AppDependencies {
+  students: StudentSet;
+  classes: Classes;
+  repository: AppStateRepository;
+  /** Registered questions and exams; fresh empty collections when omitted. */
+  questionBank?: QuestionBank;
+  examBank?: ExamBank;
+}
+
+/**
+ * Builds the Express application that exposes the REST API.
+ *
+ * The application owns no state of its own: it operates on the given
+ * collections and asks the repository to persist them after each change.
+ * Persistence is deferred (setImmediate) so that responses are not delayed
+ * by disk access.
+ */
+export function createApp({ students, classes, repository, questionBank = new QuestionBank(), examBank = new ExamBank(questionBank) }: AppDependencies): Express {
+  const app = express();
+  app.use(cors());
+  app.use(express.json({ limit: '1mb' }));
+
+  const onStateChanged = (): void => {
+    setImmediate(() => repository.save(students, classes));
+  };
+
+  app.use('/api/students', studentRoutes(students, onStateChanged));
+  app.use('/api/classes', classRoutes(classes, onStateChanged));
+  app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
+  app.use('/api/classes', reportRoutes(classes));
+  app.use('/api/classes', gradeImportRoutes());
+  app.use('/api/questions', questionRoutes(questionBank));
+  app.use('/api/exams', examPdfRoutes(examBank));
+  app.use('/api/exams', examRoutes(examBank));
+  app.use(errorHandler);
+
+  return app;
+}
