@@ -139,7 +139,7 @@ const toPercentage = (hits: number, total: number): number =>
 
 /** An invalid cell as shown in messages, with the reason when it is a number that is too large. */
 function describeInvalid(raw: string, alternatives: number): string {
-  if (raw === '') return 'vazia';
+  if (raw === '') return 'empty';
   return /^\d+$/.test(raw) ? `${raw}; the maximum with ${alternatives} alternatives is ${maxValidAnswer(alternatives)}` : raw;
 }
 
@@ -166,7 +166,7 @@ export function validateGradingInput({ keys, responses }: GradingInput): Grading
   for (const key of keys) {
     const exam = normalizeExamNumber(key.examNumber);
     if (knownExams.has(exam)) {
-      errors.push({ code: 'DUPLICATE_EXAM_IN_ANSWER_KEY', message: `A prova ${exam} aparece mais de uma vez no gabarito` });
+      errors.push({ code: 'DUPLICATE_EXAM_IN_ANSWER_KEY', message: `Exam ${exam} appears more than once in the answer key` });
       continue;
     }
     knownExams.add(exam);
