@@ -1621,3 +1621,240 @@ tbody tr:last-child td {
 .goals-note {
   color: #6b7280;
 }
+
+/* Navegação interna da aba Provas */
+
+.exam-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.exam-navigation button {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.exam-navigation button.active {
+  color: white;
+  background: #667eea;
+  border-color: #667eea;
+}
+
+/* Formulário e listagem */
+
+.create-exam,
+.exam-history {
+  max-width: 1000px;
+}
+
+.exam-section {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.exam-section label {
+  display: block;
+  margin: 0.75rem 0;
+  font-weight: 600;
+}
+
+.exam-section input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.exam-question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.exam-question-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+}
+
+.exam-question-item p {
+  margin: 0.5rem 0 0;
+  color: #6b7280;
+}
+
+.exam-question-item button,
+.exam-section button {
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #667eea;
+  color: white;
+  cursor: pointer;
+}
+
+.exam-section button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exam-selected-label {
+  font-size: 0.85rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.exam-feedback-success,
+.exam-feedback-error {
+  padding: 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+
+.exam-feedback-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.exam-feedback-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+
+/* Visualização das alternativas na criação de provas */
+
+.create-exam .exam-available-question {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+}
+
+.exam-question-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.exam-question-info {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Botão expansível */
+
+.create-exam .exam-toggle-alternatives {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
+    color: #6654bb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.create-exam .exam-toggle-alternatives:hover {
+    color: #4338a0;
+    background: transparent;
+    text-decoration: underline;
+}
+
+/* Lista expandida */
+
+.exam-alternatives-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 1rem 0 0;
+    margin: 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.exam-alternatives-preview li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.exam-alternative-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: #24334d;
+}
+
+.exam-alternative-letter {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.exam-alternative-classification {
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Alternativa verdadeira */
+
+.exam-alternatives-preview .exam-alternative-true {
+    background: #f0f8f3;
+    border-color: #d5e8db;
+}
+
+.exam-alternative-true .exam-alternative-classification {
+    color: #278553;
+}
+
+/* Alternativa falsa */
+
+.exam-alternatives-preview .exam-alternative-false {
+    background: #fff1f1;
+    border-color: #efd4d4;
+}
+
+.exam-alternative-false .exam-alternative-classification {
+    color: #b64040;
+}
+
+@media (max-width: 600px) {
+    .exam-question-header {
+        flex-wrap: wrap;
+    }
+
+    .exam-alternatives-preview li {
+        flex-wrap: wrap;
+    }
+}

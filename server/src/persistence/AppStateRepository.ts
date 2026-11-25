@@ -1,8 +1,9 @@
 import { StudentSet } from '../models/StudentSet';
 import { Classes } from '../models/Classes';
+import { ExamSubmissionSet } from '../models/ExamSubmissionSet';
 
 /**
- * Where the application state (students and classes) is kept between runs.
+ * Where the application state (students, classes and exam submissions) is kept between runs.
  *
  * The rest of the server depends only on this interface, so the storage
  * technology (a JSON file today, a database tomorrow) can change without
@@ -10,10 +11,10 @@ import { Classes } from '../models/Classes';
  */
 export interface AppStateRepository {
   /** Fills the given (empty) collections with the persisted state, if any. */
-  load(students: StudentSet, classes: Classes): void;
+  load(students: StudentSet, classes: Classes, examSubmissions?: ExamSubmissionSet): void;
 
   /** Persists the current content of the given collections. */
-  save(students: StudentSet, classes: Classes): void;
+  save(students: StudentSet, classes: Classes, examSubmissions?: ExamSubmissionSet): void;
 }
 
 /** Repository that keeps nothing: the state lives only in memory. */

@@ -7,7 +7,12 @@ import { Student } from '../models/Student';
 import { Class } from '../models/Class';
 import { Evaluation } from '../models/Evaluation';
 import { AverageCalculationSpecification } from '../models/AverageCalculationSpecification';
+<<<<<<< HEAD
 import { callbackify } from 'util';
+=======
+import { ExamSubmission, MAX_ALLOWED_SUM } from '../models/ExamSubmission';
+import { ExamSubmissionSet } from '../models/ExamSubmissionSet';
+>>>>>>> origin/develop
 
 /**
  * Keeps the application state in a single JSON file.
@@ -21,12 +26,10 @@ import { callbackify } from 'util';
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
  *       "averageBeforeFinalExam", "averageAfterFinalExam" (numbers or null), "failedByAbsence" (boolean)
  *     }]
- *
- * Files written before these fields were renamed to English are also read:
- * especificacaoDoCalculoDaMedia, mediaPreFinal, mediaPosFinal and
- * reprovadoPorFalta are accepted as the previous names of, respectively,
- * averageCalculationSpecification, averageBeforeFinalExam,
- * averageAfterFinalExam and failedByAbsence.
+ *   }],
+ *   "examSubmissions": [{
+ *     "studentName", "studentCpf" (11 digits), "studentEmail", "examTitle", "tipoProva", "submittedAt",
+ *     "questions": [{ "label", "sum", "propositions" }]
  *   }]
  * }
  *
@@ -37,9 +40,9 @@ import { callbackify } from 'util';
 export class JsonFileRepository implements AppStateRepository {
   constructor(private readonly filePath: string) {}
 
-  save(students: StudentSet, classes: Classes): void {
+  save(students: StudentSet, classes: Classes, examSubmissions?: ExamSubmissionSet): void {
     try {
-      const data = {
+      const data: Record<string, unknown> = {
         students: students.getAllStudents().map(student => ({
           name: student.getName(),
           cpf: student.getCPF(),
@@ -62,6 +65,12 @@ export class JsonFileRepository implements AppStateRepository {
         }))
       };
 
+      if (examSubmissions) {
+        data.examSubmissions = examSubmissions.getAllSubmissions().map(submission =>
+          submission.toPersistenceJSON()
+        );
+      }
+
       this.ensureDataDirectory();
       fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
@@ -69,7 +78,7 @@ export class JsonFileRepository implements AppStateRepository {
     }
   }
 
-  load(students: StudentSet, classes: Classes): void {
+  load(students: StudentSet, classes: Classes, examSubmissions?: ExamSubmissionSet): void {
     try {
       if (!fs.existsSync(this.filePath)) {
         return;
@@ -77,6 +86,9 @@ export class JsonFileRepository implements AppStateRepository {
       const data = JSON.parse(fs.readFileSync(this.filePath, 'utf-8'));
       this.loadStudents(data, students);
       this.loadClasses(data, students, classes);
+      if (examSubmissions) {
+        this.loadExamSubmissions(data, students, examSubmissions);
+      }
     } catch (error) {
       console.error('Error loading data from file:', error);
     }
@@ -158,6 +170,41 @@ export class JsonFileRepository implements AppStateRepository {
       }
       if (typeof failedByAbsence !== 'undefined') {
         enrollment.setFailedByAbsence(Boolean(failedByAbsence));
+      }
+    });
+  }
+
+  private loadExamSubmissions(
+    data: any,
+    students: StudentSet,
+    examSubmissions: ExamSubmissionSet
+  ): void {
+    if (!Array.isArray(data.examSubmissions)) {
+      return;
+    }
+    data.examSubmissions.forEach((submissionData: any) => {
+      try {
+        const student = students.findStudentByCPF(submissionData.studentCpf);
+        if (!student) {
+          console.error(`Student with CPF ${submissionData.studentCpf} not found for exam submission`);
+          return;
+        }
+        // The sums were validated against their exam when saved, so only the absolute limit applies here
+        const submission = new ExamSubmission(
+          student.getName(),
+          student.getCPF(),
+          submissionData.examTitle,
+          submissionData.tipoProva,
+          submissionData.questions,
+          {
+            studentEmail: submissionData.studentEmail ?? student.getEmail(),
+            submittedAt: submissionData.submittedAt,
+            maxSum: MAX_ALLOWED_SUM
+          }
+        );
+        examSubmissions.addSubmission(submission);
+      } catch (error) {
+        console.error(`Error adding exam submission for ${submissionData?.studentCpf}:`, error);
       }
     });
   }
