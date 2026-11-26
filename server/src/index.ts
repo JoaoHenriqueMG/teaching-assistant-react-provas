@@ -25,7 +25,7 @@ const DATA_FILE = process.env.DATA_FILE || './data/app-data.json';
 const students = new StudentSet();
 const classes = new Classes();
 const examSubmissions = new ExamSubmissionSet();
-const repository = new JsonFileRepository(path.resolve('./data/app-data.json'));
+const repository = new JsonFileRepository(path.resolve(DATA_FILE));
 repository.load(students, classes, examSubmissions);
 
 const questionBank = new QuestionBank();

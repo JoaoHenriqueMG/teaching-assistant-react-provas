@@ -1,5 +1,5 @@
-O sistema deve ser capaz de permitir a criação de
-questões fechadas com alternativas de verdadeiro e falso
+# O sistema deve ser capaz de permitir a criação de
+# questões fechadas com alternativas de verdadeiro e falso
 
 # ---------------------------------------------------------------------------------- #
 

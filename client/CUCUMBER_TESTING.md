@@ -1,15 +1,66 @@
-# Cucumber Testing Setup for Student Management System
+# Cucumber Testing Setup
 
-This project uses Cucumber for behavior-driven development (BDD) testing with TypeScript and Puppeteer for browser automation.
+This project uses Cucumber for behavior-driven development (BDD) acceptance tests, written in TypeScript
+(compiled on the fly by `ts-node`), with Puppeteer for browser automation and `expect` for assertions.
 
 ## 📋 Prerequisites
 
-1. **Backend Server**: The server must be running on `http://localhost:3005`
-2. **Frontend Client**: The React app must be running on `http://localhost:3004`
-3. **Node.js**: Version 16 or higher
-4. **Chrome/Chromium**: For Puppeteer browser automation
+1. **Backend server** on `http://localhost:3005`, **started with the test data** (see below)
+2. **Frontend client** on `http://localhost:3004` (only needed by the `@gui` scenarios)
+3. **Node.js** 20, 22 or 24+ (required by Cucumber 12; on versions it has not tested yet, such as 26, it prints a warning but works)
+4. **Chrome/Chromium** for Puppeteer
 
 ## 🚀 Running Tests
+
+### 1. Start the server with the test data
+
+```bash
+# From the repository root
+npm run server:test
+# or, from the server directory
+npm run dev:test
+```
+
+This uses `server/data/test-data.json` (ignored by git) instead of the development data
+(`server/data/app-data.json`). Another file can be chosen with the `DATA_FILE` environment variable
+(relative to the `server` folder).
+
+> Do not use `npm run dev` / `npm run server` for the tests: with the development data the auto-grade
+> scenarios stop with *"The server already has the student …"*.
+
+### 2. Start the client
+
+```bash
+# From the repository root
+npm run client
+# or, from the client directory
+npm start
+```
+
+### 3. Run Cucumber
+
+```bash
+# From the client directory
+npm run test:cucumber
+
+# or from the repository root
+npm run test:cucumber
+```
+
+If Puppeteer cannot find its own Chrome, point it to the installed one before running:
+
+```bash
+# Git Bash
+PUPPETEER_EXECUTABLE_PATH="C:/Program Files/Google/Chrome/Application/chrome.exe" npm run test:cucumber
+```
+
+```powershell
+# PowerShell
+$env:PUPPETEER_EXECUTABLE_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+npm run test:cucumber
+```
+
+## 🚀 Another Way 
 
 ### Method 1: Using the Test Runner Script (Recommended)
 
@@ -37,163 +88,111 @@ npm run test:cucumber
 npm run test:cucumber:watch
 ```
 
+### Other ways to run
+
+```bash
+# Only the "Cadastro de respostas da prova" service scenarios (cucumber.js profile)
+npx cucumber-js --config cucumber.js --profile respostas
+
+# Only the scenarios with a tag
+npx cucumber-js --config cucumber.js --tags @service
+
+# One scenario, by line number
+npx cucumber-js --config cucumber.js src/features/auto_grade_service.feature:77
+```
+
+Note: `cucumber.js` already lists `src/features/**/*.feature`, and file paths given on the command line are
+**added** to it (not replacing it), so every feature file is still parsed. Use `--tags` or `--name` to
+narrow a run, or a profile with its own `paths` (like `respostas`).
+
+`run-cucumber-tests.sh` checks that ports 3005 and 3004 answer and then runs `npm run test:cucumber`; it does
+not check that the server is using the test data.
+
+> `npm run test:cucumber:watch` does not work: `cucumber-js` has no `--watch` option.
+
 ## 🧪 Test Structure
 
-### Feature Files
-- Location: `src/features/*.feature`
-- Written in Gherkin syntax
-- Define test scenarios in natural language
+| Folder | Contents |
+| --- | --- |
+| `src/features/` | Feature files (Gherkin) |
+| `src/step-definitions/` | Step implementations |
+| `src/test-support/` | Shared helpers: `browser.ts` (Puppeteer launch/close), `fixtures.ts`, `autoGradeScenario.ts`, `autoGradeSheets.ts` |
+| `reports/` | `cucumber_report.html` and `cucumber_report.json`, written on every run |
 
-### Step Definitions
-- Location: `src/step-definitions/*.ts`
-- TypeScript files that implement the test steps
-- Handle browser automation and assertions
+### Tags
 
-### Test Reports
-- Location: `reports/`
-- HTML report: `cucumber_report.html`
-- JSON report: `cucumber_report.json`
+- `@gui`: runs in the browser (needs server and client)
+- `@service`: calls the server API only (needs the server)
+- `@server`: calls the server API only (needs the server)
 
-## 📝 Current Test Scenarios
+## 📝 Current Features
 
-### Student Management Feature
-- **File**: `src/features/student-management.feature`
-- **Scenario**: Add a new student without class association
-- **Test Steps**:
-  1. Verify system is running
-  2. Clean up any existing test data
-  3. Navigate to Students tab
-  4. Fill in student form (name, CPF, email)
-  5. Submit the form
-  6. Verify student appears in the list
-  7. Verify student data is correct
-  8. Clean up test data
+| Feature file | Tag | Steps | Status |
+| --- | --- | --- | --- |
+| `student-management.feature` | `@gui` | `student-steps.ts` | Implemented |
+| `server-student-management.feature` | `@server` | `server-student-steps.ts` | Implemented |
+| `server-cadastro-respostas.feature` | `@service` | `server-cadastro-respostas-steps.ts` | Implemented |
+| `auto_grade_gui.feature` | `@gui` | `auto-grade-common-steps.ts`, `auto-grade-gui-steps.ts` | Implemented |
+| `auto_grade_service.feature` | `@service` | `auto-grade-common-steps.ts`, `auto-grade-service-steps.ts` | Implemented |
+| `criarProvas.feature` | — | — |Implemented |
+| `criarQuestoes.feature` | — | — | Implemented |
 
-## 🔧 Configuration
-
-### Cucumber Configuration
-- **File**: `cucumber.js`
-- Defines feature file locations and step definition requirements
-- Configures report formats and output locations
-
-### TypeScript Configuration
-- **File**: `tsconfig.test.json`
-- Specific TypeScript configuration for test files
-- Includes test directories and enables necessary features
+> A single feature file that is not valid Gherkin makes `npm run test:cucumber` stop before running any
+> scenario. Free text before the `Feature:` line must be commented with `#`, and scenarios must be written
+> as `Scenario:` (not `Scenario 1:`).
 
 ## 🛠️ Test Data Management
 
-The tests follow the **AAA pattern** (Arrange, Act, Assert) with proper cleanup:
+Every scenario arranges its own data, runs, checks, and removes what it created (`Before`/`After` hooks).
 
-1. **Setup**: Removes any existing test data before starting
-2. **Execution**: Performs the test actions
-3. **Verification**: Asserts expected results
-4. **Cleanup**: Removes test data after completion
-
-### Test Student Data
+### Student Management Data
 - **CPF**: `12345678901`
 - **Name**: `Test Student`
 - **Email**: `test.student@email.com`
 
 ### Automatic Correction (auto_grade) Data
-- **Features**: `auto_grade_gui.feature` (`@gui`) and `auto_grade_service.feature` (`@service`, API only, no browser)
-- **Steps**: `auto-grade-common-steps.ts` (Background and checks shared by both), `auto-grade-gui-steps.ts`, `auto-grade-service-steps.ts`
 - **Helpers**: `src/test-support/autoGradeSheets.ts` builds the CSV spreadsheets from the scenario tables;
   `src/test-support/autoGradeScenario.ts` creates and removes the class and students through the API
-- Each scenario creates the class "Engenharia de Software e Sistemas 2026.2" and its students, and deletes them at the end
-
-These scenarios use CPFs that may also exist in the development data, so the server must use a separate
-data file. Start the server for the tests with:
-
-```bash
-# From the server directory (or `npm run server:test` from the repository root)
-npm run dev:test
-```
-
-It uses `data/test-data.json` (created on the first change, ignored by git). Another file can be chosen with
-the `DATA_FILE` environment variable (relative to the `server` folder).
-
-If the server is running with the development data, the scenarios stop before deleting any student that
-is not test data.
+- Each scenario creates the class "Engenharia de Software e Sistemas 2026.2" and its students, and deletes
+  them at the end
+- These scenarios use CPFs that also exist in the development data. If the server is running with the
+  development data, the scenarios stop before deleting any student that is not test data.
 
 ## 🎯 Browser Automation
 
-The tests use Puppeteer for browser automation:
-- **Headless**: Set to `false` for development (visible browser)
-- **Viewport**: 1280x720 for consistent testing
-- **Slow Motion**: 50ms delays for visibility during development
+Configured in `src/test-support/browser.ts`:
+- **Headless**: `false` (visible browser); set to `true` for CI
+- **Viewport**: 1280x720
+- **Slow Motion**: 50ms
 
-## 🔍 Debugging Tests
+## 🔧 Configuration
 
-### View Browser Actions
-Set `headless: false` in the step definitions to see the browser in action.
-
-### Check Server Logs
-Monitor server console for API calls during tests.
-
-### Inspect Test Reports
-Open `reports/cucumber_report.html` in a browser for detailed test results.
-
-## 📦 Dependencies
-
-### Core Testing
-- `@cucumber/cucumber`: BDD testing framework
-- `puppeteer`: Browser automation
-- `@testing-library/react`: React testing utilities
-- `@testing-library/jest-dom`: Custom Jest matchers
-
-### TypeScript Support
-- `ts-node`: TypeScript execution
-- `@types/puppeteer`: TypeScript definitions
-- `@types/jest`: Jest type definitions
+- **`cucumber.js`**: feature paths, step definitions, report formats, and the `respostas` profile.
+  It sets `TS_NODE_PROJECT=tsconfig.test.json`.
+- **`tsconfig.test.json`**: compiles the steps to CommonJS (the app's `tsconfig.json` emits ES modules,
+  which cannot import the project's `.ts` modules from the steps).
 
 ## 🚨 Troubleshooting
 
-### Server Not Running
-```
-Error: Server is not available
-```
-**Solution**: Start the backend server: `npm run dev` (from server directory)
-
-### Client Not Running
-```
-Error: Navigation timeout
-```
-**Solution**: Start the frontend: `npm start` (from client directory)
-
-### TypeScript Compilation Issues
-```
-Error: TS2307: Cannot find module '@jest/globals'
-```
-**Solution**: The setup uses custom assertion functions instead of Jest. No additional Jest installation needed.
-
-### Cucumber Configuration Issues
-```
-Error: You're calling functions on an instance of Cucumber that isn't running
-```
-**Solution**: Ensure setDefaultTimeout is called within step definition files, not in config.
-
-### Port Conflicts
-**Solution**: Ensure ports 3004 and 3005 are available
-
-### Browser Issues
-**Solution**: Install latest Chrome/Chromium or run headless mode
-If Puppeteer cannot find its own Chrome, point it to the installed one:
-`PUPPETEER_EXECUTABLE_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"`
-
-### Module Resolution Issues
-**Solution**: Use direct imports instead of relative imports for better compatibility
+| Error | Solution |
+| --- | --- |
+| `Parse error in "src\features\…feature"` | Fix the Gherkin of that file (see *Current Features*) |
+| `Server is not available` / `fetch failed` | Start the server: `npm run server:test` (from the root) |
+| `The server already has the student …` | The server is using the development data: restart it with `npm run server:test` |
+| `Navigation timeout` | Start the client: `npm run client` (from the root) |
+| `Could not find Chrome (ver. …)` | Set `PUPPETEER_EXECUTABLE_PATH` to the installed Chrome, or delete the broken folder in `~/.cache/puppeteer/chrome/` and run `npx puppeteer browsers install chrome` |
+| `EADDRINUSE` / `Something is already running on port 3004` | Another server is still running on 3005/3004; stop it first |
+| `You're calling functions on an instance of Cucumber that isn't running` | Call `setDefaultTimeout` inside step definition files, not in the config |
 
 ## 📈 Adding New Tests
 
-1. **Create Feature File**: Add `.feature` file in `src/features/`
-2. **Write Scenarios**: Use Gherkin syntax (Given, When, Then)
-3. **Implement Steps**: Add step definitions in `src/step-definitions/`
-4. **Follow Patterns**: Use existing test structure for consistency
-5. **Include Cleanup**: Always clean up test data
-
-Example new scenario:
-```gherkin
+1. **Feature file**: add a `.feature` file in `src/features/` with a tag (`@gui`, `@service` or `@server`)
+2. **Scenarios**: Gherkin syntax (Given, When, Then); comment any free text with `#`
+3. **Steps**: add step definitions in `src/step-definitions/`; shared helpers go in `src/test-support/`
+4. **Cleanup**: always remove the data the scenario created
+5. **Check**: `npx cucumber-js --config cucumber.js --dry-run` reports parse errors and undefined steps
+   without needing the servers
+``gherkin
 Scenario: Delete a student
   Given there is a student with CPF "98765432100" in the system
   When I delete the student from the list
