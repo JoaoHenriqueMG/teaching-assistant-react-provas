@@ -1,4 +1,4 @@
-import { EVALUATION_GOALS, Grade } from './Evaluation';
+import { DEFAULT_EVALUATION_GOALS, Grade } from './Evaluation';
 import { DomainError } from './DomainError';
 
 type Goal = string;
@@ -39,12 +39,32 @@ export class AverageCalculationSpecification {
 
         for (const [goal, grade] of gradesByGoal.entries()) 
         {
+            if (typeof grade === 'number') {
+                throw new DomainError(`Expected a concept grade for goal ${goal}, but got ${grade}`);
+            }
             const gradeWeight = this.gradeWeights.get(grade)!;
             const goalWeight = this.goalWeights.get(goal)!;
             total += goalWeight * gradeWeight;
         }
 
         return total / this.goalWeightsSum;
+    }
+
+    calculateNumericAverage(gradesByGoal: Map<Goal, Grade>): number
+    {
+        let total = 0;
+
+        for (const [goal, grade] of gradesByGoal.entries())
+        {
+            if (typeof grade !== 'number') {
+                throw new DomainError(`Expected a numeric grade for goal ${goal}, but got ${grade}`);
+            }
+            
+            const goalWeight = this.goalWeights.get(goal)!;
+            total += goalWeight * grade;
+        }
+
+        return total / this. goalWeightsSum
     }
 
     // Exports the data in a serializable format
@@ -109,7 +129,7 @@ const DEFAULT_GRADE_WEIGHTS = new Map<Grade, number>([
 ]);
 
 // Every evaluation goal has the same weight by default
-const DEFAULT_GOAL_WEIGHTS = new Map<Goal, number>(EVALUATION_GOALS.map(goal => [goal, 1]));
+const DEFAULT_GOAL_WEIGHTS = new Map<Goal, number>(DEFAULT_EVALUATION_GOALS.map(goal => [goal, 1]));
 
 export const DEFAULT_AVERAGE_CALCULATION_SPECIFICATION = new AverageCalculationSpecification(
   DEFAULT_GRADE_WEIGHTS,

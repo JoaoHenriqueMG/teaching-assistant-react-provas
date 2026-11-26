@@ -8,17 +8,25 @@ import { DomainError } from './DomainError';
  * 'topic-year-semester', with the enrolled students and the specification
  * of how their averages are computed. A student is enrolled at most once.
  */
+
+export const GRADE_TYPE = ['concept', 'numeric'] as const;
+export type GradeType = typeof GRADE_TYPE[number];
+
 export class Class {
   private topic: string;
   private semester: number;
   private year: number;
+  private gradeType: GradeType;
+  private goals: string[];
   private readonly averageCalculationSpecification: AverageCalculationSpecification;
   private enrollments: Enrollment[];
 
-  constructor(topic: string, semester: number, year: number, averageCalculationSpecification: AverageCalculationSpecification, enrollments: Enrollment[] = []) {
+  constructor(topic: string, semester: number, year: number, gradeType: GradeType, goals: string[], averageCalculationSpecification: AverageCalculationSpecification, enrollments: Enrollment[] = []) {
     this.topic = topic;
     this.semester = semester;
     this.year = year;
+    this.gradeType = gradeType;
+    this.goals = goals;
     this.averageCalculationSpecification = averageCalculationSpecification;
     this.enrollments = enrollments;
   }
@@ -34,6 +42,14 @@ export class Class {
 
   getYear(): number {
     return this.year;
+  }
+
+  getGradeType(): GradeType {
+    return this.gradeType;
+  }
+
+  getGoals(): string[] {
+    return this.goals;
   }
 
   getEnrollments(): Enrollment[] {
@@ -58,6 +74,14 @@ export class Class {
     this.year = year;
   }
 
+  setGradeType(gradeType: GradeType): void {
+    this.gradeType = gradeType;
+  }
+
+  setGoals(goals: string[]): void {
+    this.goals = goals;
+  }
+  
   getAverageCalculationSpecification(): AverageCalculationSpecification {
     return this.averageCalculationSpecification;
   }
@@ -106,13 +130,15 @@ export class Class {
       topic: this.topic,
       semester: this.semester,
       year: this.year,
+      gradeType: this.gradeType,
+      goals: this.goals,
       averageCalculationSpecification: this.averageCalculationSpecification.toJSON(),
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
     };
   }
 
   // Create Class from JSON object
-  static fromJSON(data: { topic: string; semester: number; year: number; averageCalculationSpecification: any, enrollments: any[] }, allStudents: Student[]): Class {
+  static fromJSON(data: { topic: string; semester: number; year: number; gradeType: GradeType, goals: string[], averageCalculationSpecification: any, enrollments: any[] }, allStudents: Student[]): Class {
     const enrollments = data.enrollments
       ? data.enrollments.map((enrollmentData: any) => {
           const student = allStudents.find(s => s.getCPF() === enrollmentData.student.cpf);
@@ -126,6 +152,6 @@ export class Class {
     // Rebuilds the average calculation specification
     const averageCalculationSpecification = AverageCalculationSpecification.fromJSON(data.averageCalculationSpecification);
 
-    return new Class(data.topic, data.semester, data.year, averageCalculationSpecification, enrollments);
+    return new Class(data.topic, data.semester, data.year, data.gradeType, data.goals, averageCalculationSpecification, enrollments);
   }
 }

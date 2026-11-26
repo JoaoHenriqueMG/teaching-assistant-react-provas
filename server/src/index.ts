@@ -4,10 +4,10 @@ import { StudentSet } from './models/StudentSet';
 import { Classes } from './models/Classes';
 import { QuestionBank } from './models/QuestionBank';
 import { ExamBank } from './models/ExamBank';
+import { ExamSubmissionSet } from './models/ExamSubmissionSet';
 import { JsonFileRepository } from './persistence/JsonFileRepository';
 import { JsonQuestionRepository } from './persistence/JsonQuestionRepository';
 import { JsonExamRepository } from './persistence/JsonExamRepository';
-
 
 /**
  * Composition root: creates the collections, loads the persisted state and
@@ -15,13 +15,18 @@ import { JsonExamRepository } from './persistence/JsonExamRepository';
  *
  * The port comes from the PORT environment variable (set by hosting
  * services and by the root package.json scripts); 3005 is the default.
+ * The state is persisted in the file given by DATA_FILE (relative to the
+ * server folder); ./data/app-data.json is the default. The acceptance tests
+ * use another file so they never touch the development data.
  */
 const PORT = Number(process.env.PORT) || 3005;
+const DATA_FILE = process.env.DATA_FILE || './data/app-data.json';
 
 const students = new StudentSet();
 const classes = new Classes();
-const repository = new JsonFileRepository(path.resolve('./data/app-data.json'));
-repository.load(students, classes);
+const examSubmissions = new ExamSubmissionSet();
+const repository = new JsonFileRepository(path.resolve(DATA_FILE));
+repository.load(students, classes, examSubmissions);
 
 const questionBank = new QuestionBank();
 const questionRepository = new JsonQuestionRepository(path.resolve('./data/questions.json'));
@@ -44,7 +49,8 @@ createApp({
   examBank,
   onExamsChanged: () => {
     examRepository.save(examBank);
-  }
+  },
+  examSubmissions
 }).listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

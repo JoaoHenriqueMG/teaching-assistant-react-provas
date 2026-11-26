@@ -1,15 +1,15 @@
 import { Given, When, Then, Before, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
-import { Browser, ElementHandle, Page, launch } from 'puppeteer';
+import { ElementHandle, Page } from 'puppeteer';
 import expect from 'expect';
+// Opens and closes the browser of each @gui scenario; imported first so its hooks wrap the ones below
+import { baseUrl, currentPage } from '../test-support/browser';
 // The tests compare CPFs the way the interface shows them
 import { formatCPF } from '../types/CPF';
 
 // Set default timeout for all steps
 setDefaultTimeout(30 * 1000); // 30 seconds
 
-let browser: Browser;
 let page: Page;
-const baseUrl = 'http://localhost:3004';
 const serverUrl = 'http://localhost:3005';
 
 // Test data to clean up
@@ -65,13 +65,9 @@ const requireTestStudentRow = async (): Promise<ElementHandle<Element>> => {
   return row!;
 };
 
-Before({ tags: '@gui' }, async function () {
-  browser = await launch({ 
-    headless: false, // Set to true for CI/CD
-    slowMo: 50 // Slow down actions for visibility
-  });
-  page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 720 });
+// The browser was opened by the hook in test-support/browser.ts
+Before({ tags: '@gui' }, function () {
+  page = currentPage();
 });
 
 After({ tags: '@gui' }, async function () {
@@ -84,10 +80,6 @@ After({ tags: '@gui' }, async function () {
     } catch (error) {
       console.log('GUI cleanup: Student may not exist or GUI unavailable');
     }
-  }
-  
-  if (browser) {
-    await browser.close();
   }
 });
 

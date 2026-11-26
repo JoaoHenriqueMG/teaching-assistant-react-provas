@@ -20,5 +20,16 @@ module.exports = {
     },
     paths: ['src/features/**/*.feature'],
     requireModule: ['ts-node/register']
+  },
+  // Only the service scenarios of "Cadastro de respostas da prova":
+  //   npx cucumber-js --config cucumber.js --profile respostas
+  // (needs the server on port 3005; use it while some .feature file of the
+  // other features is not valid Gherkin and stops the default profile)
+  respostas: {
+    require: ['ts-node/register', 'src/step-definitions/**/*.ts'],
+    format: ['progress-bar'],
+    formatOptions: { snippetInterface: 'async-await' },
+    paths: ['src/features/server-cadastro-respostas.feature'],
+    requireModule: ['ts-node/register']
   }
 };

@@ -1,7 +1,19 @@
 /** The grades a student can get for a learning goal, from worst to best. */
 export const GRADES = ['MANA', 'MPA', 'MA'] as const;
 
-export type Grade = typeof GRADES[number];
+export type ConceptGrade = typeof GRADES[number];
+
+export type Grade = ConceptGrade | number;
+
+/** Type guard: checks if value is a valid concept ('MANA' | 'MPA' | 'MA'). */
+export function isConceptGrade(value: unknown): value is ConceptGrade {
+  return (GRADES as readonly unknown[]).includes(value);
+}
+
+/** Type guard: checks if value is a valid numeric grade (0 to 10). */
+export function isNumericGrade(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 10;
+}
 
 /** Type guard: tells whether an arbitrary value is one of the known grades. */
 export function isGrade(value: unknown): value is Grade {
@@ -43,8 +55,8 @@ export class Evaluation {
   }
 }
 
-/** The learning goals graded in every class. */
-export const EVALUATION_GOALS = [
+/** The default learning goals */
+export const DEFAULT_EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 
   'Project Management',
